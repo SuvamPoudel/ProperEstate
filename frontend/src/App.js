@@ -55,306 +55,475 @@ const DummyEsewaPayment = ({ amount, description, onSuccess, onCancel }) => {
   );
 };
 
-/* ===== SMART RENT ADVISOR ===== */
-// NLP-style intent detection
-function detectIntent(text) {
-  const t = text.toLowerCase().trim();
-  // Greetings
-  if (t.match(/^(hi|hello|hey|namaste|namaskar|yo|sup|howdy|good morning|good evening|good afternoon|hola)/)) return { type: "greeting" };
-  // Help with website navigation
-  if (t.match(/how (do i|to|can i)|where (do i|can i|is)|what is|explain|guide|help me|navigate|use (the|this)|find|search|post|list|upload|add|create account|sign up|register|login|log in|book|rent|contact|chat|message|profile|edit|delete|save|wishlist|filter|browse/)) return { type: "website_help", text: t };
-  // Seller account
-  if (t.match(/seller|become.*seller|list.*property|post.*land|upload.*property|how.*post|want.*sell|want.*rent.*out/)) return { type: "become_seller" };
-  // Buyer account
-  if (t.match(/buyer|renter|tenant|how.*rent|want.*rent|looking.*rent|need.*place|find.*house|find.*flat|find.*room/)) return { type: "buyer_info" };
-  // Cities
-  if (t.match(/kathmandu|ktm|lalitpur|bhaktapur|patan/)) return { type: "city", city: "ktm" };
-  if (t.match(/pokhara|lakeside/)) return { type: "city", city: "pkr" };
-  if (t.match(/chitwan|bharatpur|narayanghat/)) return { type: "city", city: "chitwan" };
-  if (t.match(/butwal|bhairahawa|rupandehi/)) return { type: "city", city: "butwal" };
-  if (t.match(/biratnagar|morang|sunsari|itahari/)) return { type: "city", city: "biratnagar" };
-  if (t.match(/pokhara|kaski/)) return { type: "city", city: "pkr" };
-  // Property types
-  if (t.match(/room|kotha|1bhk|single room|hostel|pg|paying guest/)) return { type: "property", prop: "room" };
-  if (t.match(/flat|apartment|2bhk|3bhk|bhk|floor/)) return { type: "property", prop: "flat" };
-  if (t.match(/house|bungalow|full house|ghar|makan/)) return { type: "property", prop: "house" };
-  if (t.match(/shop|pasal|showroom|store|retail/)) return { type: "property", prop: "shop" };
-  if (t.match(/office|karya|workspace|cowork/)) return { type: "property", prop: "office" };
-  if (t.match(/warehouse|godown|storage|factory|industrial/)) return { type: "property", prop: "warehouse" };
-  if (t.match(/restaurant|cafe|food|kitchen|dhaba/)) return { type: "property", prop: "restaurant" };
-  if (t.match(/agri|farm|khet|agricultural|land|plot|field/)) return { type: "property", prop: "agri" };
-  // Budget
-  if (t.match(/cheap|sasto|affordable|low budget|budget|under 10|less than 10|10000|5000|8000/)) return { type: "budget", range: "low" };
-  if (t.match(/mid|medium|moderate|10.*30|20.*40|15000|20000|25000/)) return { type: "budget", range: "mid" };
-  if (t.match(/premium|luxury|high|expensive|above 30|50000|lakh|1 lakh/)) return { type: "budget", range: "high" };
-  // Process/tips
-  if (t.match(/process|how.*work|steps|procedure|tips|checklist|agreement|contract|advance|deposit|malpot|ward/)) return { type: "tips" };
-  // Price inquiry
-  if (t.match(/price|rate|cost|kati|kitna|how much|rent.*how|monthly|per month/)) return { type: "price_inquiry", text: t };
-  // Comparison
-  if (t.match(/best|better|compare|vs|versus|which.*city|which.*area|recommend|suggest/)) return { type: "recommendation", text: t };
-  // Broker
-  if (t.match(/broker|dalal|commission|agent|middleman|no broker|without broker/)) return { type: "broker" };
-  // Thanks/bye
-  if (t.match(/thank|thanks|dhanyabad|bye|goodbye|ok|okay|got it|understood|clear|perfect|great|awesome/)) return { type: "thanks" };
-  return { type: "unknown", text: t };
-}
+/* ===== AI RENT ADVISOR ===== */
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-function getResponse(intent, text) {
-  switch (intent.type) {
-    case "greeting":
-      return { msg: "Namaste! I am your Nepal Rent Advisor.\n\nI can help you with:\n- Rental prices in any Nepal city\n- Finding the right property type\n- How to use ProperEstate\n- Renting tips and process\n\nWhat are you looking for today?", opts: [
-        { l: "Find a rental property", n: "house" },
-        { l: "Rental prices by city", n: "city" },
-        { l: "How to use this website", n: "website_guide" },
-        { l: "Renting tips", n: "tips" },
-      ]};
-    case "greeting":
-      return { msg: "Namaste! How can I help you today?", opts: [{ l: "Find rental", n: "house" }, { l: "Prices", n: "city" }, { l: "Website help", n: "website_guide" }] };
-    case "broker":
-      return { msg: "Great question! ProperEstate is 100% broker-free.\n\nBrokers make you broke - that is why we built this platform.\n\nHere you connect DIRECTLY with property owners. No middlemen, no hidden commissions, no broker fees.\n\nJust find a property you like, click 'Request to Rent', and talk directly to the owner via our chat feature.", opts: [{ l: "Browse properties", n: "root" }, { l: "How to rent", n: "tips" }] };
-    case "become_seller":
-      return { msg: "To list your property on ProperEstate:\n\n1. Go to your Profile (top right avatar)\n2. Scroll to 'Become a Seller' section\n3. Upload your Citizenship / NID / Passport\n4. Wait for admin verification (usually 24hrs)\n5. Once approved, click 'List Property' in the sidebar\n\nYou will need to pay Rs. 1000 platform commission when listing.", opts: [{ l: "Renting process tips", n: "tips" }, { l: "Back to main menu", n: "root" }] };
-    case "buyer_info":
-      return { msg: "As a buyer/renter on ProperEstate:\n\n1. Browse properties on the home page\n2. Use filters to narrow by location, type, budget\n3. Click any property for full details\n4. Click 'Request to Rent' to send a booking request\n5. Pay Rs. 5000 security deposit via eSewa\n6. Chat directly with the owner\n\nNo broker fees ever!", opts: [{ l: "Browse by city", n: "city" }, { l: "Browse by budget", n: "budget" }, { l: "Renting tips", n: "tips" }] };
-    case "website_help":
-      return getWebsiteHelp(text || "");
-    case "city":
-      const cityMap = { ktm: "city_ktm", pkr: "city_pkr", chitwan: "city_chitwan", butwal: "city_butwal", biratnagar: "city_biratnagar" };
-      return RENT_TREE[cityMap[intent.city]] || RENT_TREE.city;
-    case "property":
-      const propMap = { room: "house_1bhk", flat: "house_2bhk", house: "house_full", shop: "comm_shop", office: "comm_office", warehouse: "comm_warehouse", restaurant: "comm_restaurant", agri: "agri" };
-      return RENT_TREE[propMap[intent.prop]] || RENT_TREE.house;
-    case "budget":
-      const budMap = { low: "bud_low", mid: "bud_mid", high: "bud_high" };
-      return RENT_TREE[budMap[intent.range]] || RENT_TREE.budget;
-    case "tips":
-      return RENT_TREE.tips;
-    case "price_inquiry":
-      return { msg: "I can give you rental prices! Which city or property type are you asking about?\n\nFor example: 'room in Kathmandu' or 'shop in Pokhara'", opts: [
-        { l: "Kathmandu prices", n: "city_ktm" },
-        { l: "Pokhara prices", n: "city_pkr" },
-        { l: "Chitwan prices", n: "city_chitwan" },
-        { l: "All cities", n: "city" },
-      ]};
-    case "recommendation":
-      return { msg: "For the best rental value in Nepal:\n\nBest overall value: Pokhara (growing city, lower prices than KTM)\nBest for work: Kathmandu (most jobs, best connectivity)\nBest affordable: Chitwan, Butwal (good infrastructure, low rent)\nBest for business: Birgunj, Biratnagar (trade routes)\n\nWhat is your priority - work, lifestyle, or business?", opts: [
-        { l: "Work / Career", n: "city_ktm" },
-        { l: "Lifestyle / Tourism", n: "city_pkr" },
-        { l: "Affordable living", n: "city_chitwan" },
-        { l: "Business / Trade", n: "city_biratnagar" },
-      ]};
-    case "thanks":
-      return { msg: "You are welcome! Feel free to ask anything else about renting in Nepal. Good luck finding your perfect property!", opts: [{ l: "Start over", n: "root" }] };
-    default:
-      return getSmartFallback(text || "");
-  }
-}
-
-function getWebsiteHelp(text) {
-  if (text.match(/search|find|browse|look/)) return { msg: "To search for properties:\n\n1. Use the search bar at the top of the page\n2. Type a city name, area, or property type\n3. Live suggestions will appear as you type\n4. Click a suggestion to go directly to that property\n\nOr use the Filters button below the search to filter by location, type, and price range.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/post|list|upload|add.*property|create.*listing/)) return { msg: "To list a property for rent:\n\n1. First become a verified seller (Profile > Become Seller)\n2. Click 'List Property' in the left sidebar\n3. Fill in all property details\n4. Upload property photo and Lalpurja document\n5. Pay Rs. 1000 platform commission via eSewa\n6. Wait for admin approval (24-48 hours)\n\nOnce approved, your property goes live!", opts: [{ l: "Become a seller", n: "root" }, { l: "Back", n: "root" }] };
-  if (text.match(/book|rent|request|contact.*owner/)) return { msg: "To rent a property:\n\n1. Find a property you like\n2. Click 'Details' to see full info\n3. Click 'Request to Rent'\n4. Enter how long you want to rent (months/years)\n5. Pay Rs. 5000 security deposit via eSewa\n6. The owner gets notified by email\n7. Chat with the owner directly using the chat button\n\nThe owner will accept or reject your request.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/chat|message|talk.*owner|contact/)) return { msg: "To chat with a property owner:\n\n1. Go to any property details page\n2. Click 'Chat with Owner' button\n3. A chat window opens at the bottom right\n4. Type your message and press Enter\n\nYou can also access all your chats by clicking the chat icon in the navigation bar (top right).\n\nNote: Messages auto-delete 1 minute after being read.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/profile|edit.*profile|change.*name|change.*photo|avatar/)) return { msg: "To edit your profile:\n\n1. Click your avatar photo in the top right\n2. Or click 'My Profile' in the sidebar\n3. Click the camera icon to change your photo\n4. Update your name and phone number\n5. Click 'Save Changes'\n\nNote: Email cannot be changed after registration.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/save|wishlist|favorite|heart/)) return { msg: "To save properties to your wishlist:\n\n1. On any property card, click the heart icon\n2. Or on the property details page, click 'Add to Wishlist'\n3. Access your saved properties via Dashboard > My Saved Wishlist\n\nYou must be logged in to save properties.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/login|sign in|account|register|sign up/)) return { msg: "To create an account:\n\n1. Click 'Login' in the top right\n2. Click 'Create an account'\n3. Enter your name, email, and password\n4. Click Register\n\nNew accounts are Buyer accounts by default.\nTo become a seller, go to Profile > Become a Seller.\n\nAlready have an account? Just click Login and enter your credentials.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/filter|price.*range|category|type/)) return { msg: "To filter properties:\n\n1. On the home page, click 'Filters' button\n2. Set location (city or area name)\n3. Choose property type (Residential/Commercial/Agricultural)\n4. Set minimum and maximum rent per month\n5. Filters apply instantly\n\nClick 'Refresh' to reload all properties.", opts: [{ l: "Back to main menu", n: "root" }] };
-  if (text.match(/booking.*request|request.*status|my.*request|pending/)) return { msg: "To check your booking requests:\n\n1. Click 'Requests' in the navigation bar (bell icon)\n2. You will see all incoming rental requests for your properties\n3. Click Accept or Reject for each request\n4. The renter gets notified by email automatically\n\nAs a renter, you can see your request status on the property details page.", opts: [{ l: "Back to main menu", n: "root" }] };
-  return { msg: "I can help you navigate ProperEstate! What do you need help with?", opts: [
-    { l: "How to search properties", n: "website_guide" },
-    { l: "How to list a property", n: "website_guide" },
-    { l: "How to rent a property", n: "website_guide" },
-    { l: "How to chat with owner", n: "website_guide" },
-    { l: "Account and profile", n: "website_guide" },
-  ]};
-}
-
-function getSmartFallback(text) {
-  const t = text.toLowerCase();
-  // Try to extract any useful keywords
-  if (t.length < 3) return { msg: "Could you tell me more? I am here to help with Nepal rentals and using this website.", opts: [{ l: "Show main menu", n: "root" }] };
-  if (t.match(/\d+/)) {
-    const num = parseInt(t.match(/\d+/)[0]);
-    if (num < 10000) return { msg: "For a budget under Rs. " + num.toLocaleString() + "/month, you can find rooms in smaller cities like Chitwan, Butwal, or Biratnagar. Kathmandu outskirts also have options in this range.", opts: [{ l: "Affordable options", n: "bud_low" }, { l: "Back", n: "root" }] };
-    if (num < 30000) return { msg: "With Rs. " + num.toLocaleString() + "/month budget, you have good options! You can get a 2BHK flat in Pokhara, Chitwan, or Kathmandu mid-areas.", opts: [{ l: "Mid-range options", n: "bud_mid" }, { l: "Back", n: "root" }] };
-    return { msg: "With Rs. " + num.toLocaleString() + "/month, you can access premium properties in Kathmandu prime areas or commercial spaces in major cities.", opts: [{ l: "Premium options", n: "bud_high" }, { l: "Back", n: "root" }] };
-  }
-  return { msg: "I am not sure I understood that. I can help you with:\n\n- Rental prices in Nepal cities\n- Finding the right property type\n- How to use ProperEstate website\n- Renting tips and process\n\nTry asking something like 'room in Kathmandu' or 'how do I post a property'", opts: [
-    { l: "Show main menu", n: "root" },
-    { l: "Rental prices", n: "city" },
-    { l: "Website help", n: "website_guide" },
-  ]};
-}
-
-const RENT_TREE = {
-  root: { msg: "Namaste! I am your Nepal Rent Advisor.\n\nWhat are you looking for?", opts: [
-    { l: "Find a House / Flat to Rent", n: "house" },
-    { l: "Rent Commercial Space", n: "commercial" },
-    { l: "Rent Agricultural Land", n: "agri" },
-    { l: "Rental Prices by City", n: "city" },
-    { l: "Rent by Budget", n: "budget" },
-    { l: "How to Use This Website", n: "website_guide" },
-    { l: "Renting Tips & Process", n: "tips" },
-  ]},
-  house: { msg: "Renting a house or flat. Which type?", opts: [
-    { l: "Single Room / 1BHK", n: "house_1bhk" },
-    { l: "2-3 BHK Flat / Apartment", n: "house_2bhk" },
-    { l: "Full House / Bungalow", n: "house_full" },
-    { l: "Back", n: "root" },
-  ]},
-  house_1bhk: { msg: "Single Room / 1BHK Rent in Nepal:\n\nKathmandu (Koteshwor, Baneshwor): Rs. 8,000-18,000/mo\nKathmandu (Kirtipur, Balkhu): Rs. 5,000-10,000/mo\nPokhara: Rs. 5,000-12,000/mo\nChitwan (Bharatpur): Rs. 4,000-9,000/mo\nButwal / Bhairahawa: Rs. 3,500-8,000/mo\n\nTip: Rooms near colleges/hospitals rent faster. Always get a written agreement.", opts: [{ l: "Renting Process", n: "tips" }, { l: "Back", n: "house" }] },
-  house_2bhk: { msg: "2-3 BHK Flat Rent in Nepal:\n\nKathmandu prime (Lazimpat, Maharajgunj): Rs. 25,000-60,000/mo\nKathmandu mid (Balaju, Kalanki): Rs. 15,000-30,000/mo\nPokhara Lakeside: Rs. 18,000-40,000/mo\nChitwan: Rs. 10,000-22,000/mo\nButwal: Rs. 8,000-18,000/mo\n\nTip: Furnished flats cost 20-40% more. Check water supply and parking.", opts: [{ l: "Renting Process", n: "tips" }, { l: "Back", n: "house" }] },
-  house_full: { msg: "Full House / Bungalow Rent:\n\nKathmandu (Patan, Bhaktapur): Rs. 40,000-1.5 Lakh/mo\nPokhara: Rs. 30,000-80,000/mo\nChitwan: Rs. 20,000-50,000/mo\n\nTip: Full houses usually require 2-3 months advance + 1 month deposit.", opts: [{ l: "Back", n: "house" }] },
-  commercial: { msg: "Commercial space rental. What type?", opts: [
-    { l: "Shop / Showroom", n: "comm_shop" },
-    { l: "Office Space", n: "comm_office" },
-    { l: "Warehouse / Godown", n: "comm_warehouse" },
-    { l: "Restaurant Space", n: "comm_restaurant" },
-    { l: "Back", n: "root" },
-  ]},
-  comm_shop: { msg: "Shop / Showroom Rent:\n\nKathmandu (New Road, Thamel): Rs. 50,000-3 Lakh/mo\nKathmandu (Ring Road facing): Rs. 30,000-1.5 Lakh/mo\nPokhara Lakeside: Rs. 25,000-80,000/mo\nChitwan Highway: Rs. 15,000-50,000/mo\nButwal, Biratnagar: Rs. 10,000-40,000/mo\n\nTip: Road frontage doubles the rent. Check footfall before signing.", opts: [{ l: "Back", n: "commercial" }] },
-  comm_office: { msg: "Office Space Rent:\n\nKathmandu (Durbarmarg, Hattisar): Rs. 60-150/sqft/mo\nKathmandu (Pulchowk, Jhamsikhel): Rs. 40-90/sqft/mo\nPokhara: Rs. 30-70/sqft/mo\n\nTip: Co-working spaces in Kathmandu start at Rs. 5,000/desk/mo.", opts: [{ l: "Back", n: "commercial" }] },
-  comm_warehouse: { msg: "Warehouse / Godown Rent:\n\nKathmandu (Balaju, Thankot): Rs. 15-35/sqft/mo\nBirgunj (India border): Rs. 8-20/sqft/mo\nBiratnagar: Rs. 10-25/sqft/mo\n\nTip: Check road access for trucks. Birgunj is best for import/export.", opts: [{ l: "Back", n: "commercial" }] },
-  comm_restaurant: { msg: "Restaurant Space Rent:\n\nThamel (tourist area): Rs. 80,000-3 Lakh/mo\nJhamsikhel / Sanepa: Rs. 50,000-1.5 Lakh/mo\nPokhara Lakeside: Rs. 40,000-1 Lakh/mo\n\nTip: Check kitchen ventilation rules, water supply, and parking.", opts: [{ l: "Back", n: "commercial" }] },
-  agri: { msg: "Agricultural Land Rent in Nepal:\n\nChitwan / Nawalpur: Rs. 8,000-25,000/kattha/year\nRupandehi / Kapilvastu: Rs. 6,000-20,000/kattha/year\nSunsari / Morang: Rs. 7,000-22,000/kattha/year\nKailali / Kanchanpur: Rs. 4,000-15,000/kattha/year\n\nTip: Terai land is most fertile. Always register at local Malpot office.", opts: [{ l: "Renting Process", n: "tips" }, { l: "Back", n: "root" }] },
-  city: { msg: "Which city are you looking to rent in?", opts: [
-    { l: "Kathmandu", n: "city_ktm" },
-    { l: "Pokhara", n: "city_pkr" },
-    { l: "Chitwan", n: "city_chitwan" },
-    { l: "Butwal / Bhairahawa", n: "city_butwal" },
-    { l: "Biratnagar", n: "city_biratnagar" },
-    { l: "Back", n: "root" },
-  ]},
-  city_ktm: { msg: "Kathmandu Rental Market 2025:\n\nTrend: Prices up 12% from last year\nRoom: Rs. 6,000-18,000/mo\n2BHK Flat: Rs. 18,000-50,000/mo\nOffice: Rs. 40-150/sqft/mo\nShop (Ring Road): Rs. 30,000-1.5L/mo\n\nHot areas: Baluwatar, Jhamsikhel, Lazimpat\nAffordable: Kirtipur, Balkhu, Thankot\n\nTip: Demand exceeds supply - act fast on good listings!", opts: [{ l: "Back", n: "city" }] },
-  city_pkr: { msg: "Pokhara Rental Market 2025:\n\nTrend: Tourism recovery boosting rents\nRoom: Rs. 5,000-12,000/mo\n2BHK Flat: Rs. 15,000-35,000/mo\nShop (Lakeside): Rs. 25,000-80,000/mo\n\nHot areas: Lakeside, Birauta, Newroad\nAffordable: Hemja, Lekhnath, Pokhara-6\n\nTip: Lakeside rents spike in tourist season (Oct-Feb).", opts: [{ l: "Back", n: "city" }] },
-  city_chitwan: { msg: "Chitwan Rental Market 2025:\n\nRoom: Rs. 4,000-9,000/mo\n2BHK Flat: Rs. 10,000-22,000/mo\nShop (Narayanghat): Rs. 15,000-50,000/mo\nAgri land: Rs. 8,000-25,000/kattha/year\n\nHot areas: Bharatpur-10, Narayanghat\nTip: Chitwan is growing fast - great value vs Kathmandu.", opts: [{ l: "Back", n: "city" }] },
-  city_butwal: { msg: "Butwal / Bhairahawa Rental Market:\n\nRoom: Rs. 3,500-8,000/mo\n2BHK Flat: Rs. 8,000-18,000/mo\nShop (Highway): Rs. 10,000-40,000/mo\n\nTip: Bhairahawa airport expansion is driving up commercial rents.", opts: [{ l: "Back", n: "city" }] },
-  city_biratnagar: { msg: "Biratnagar Rental Market:\n\nRoom: Rs. 4,000-10,000/mo\n2BHK Flat: Rs. 10,000-22,000/mo\nWarehouse: Rs. 10-25/sqft/mo\nShop: Rs. 12,000-45,000/mo\n\nTip: Industrial zone has affordable warehouse space.", opts: [{ l: "Back", n: "city" }] },
-  budget: { msg: "What is your monthly rental budget?", opts: [
-    { l: "Under Rs. 10,000/mo", n: "bud_low" },
-    { l: "Rs. 10,000-30,000/mo", n: "bud_mid" },
-    { l: "Above Rs. 30,000/mo", n: "bud_high" },
-    { l: "Back", n: "root" },
-  ]},
-  bud_low: { msg: "Under Rs. 10,000/month - best options:\n\nSingle room in Kathmandu outskirts (Kirtipur, Balkhu)\n1BHK in Pokhara (Hemja, Lekhnath)\nRoom in Chitwan, Butwal, Biratnagar\nAgricultural land in Terai (per year basis)\n\nTip: Share accommodation to cut costs.", opts: [{ l: "Back", n: "budget" }] },
-  bud_mid: { msg: "Rs. 10,000-30,000/month - best options:\n\n2BHK flat in Kathmandu mid-areas\n2BHK in Pokhara Lakeside area\nSmall shop in Chitwan / Butwal\nFull house in Biratnagar / Butwal\n\nTip: This budget gets you a comfortable flat in most cities outside Kathmandu prime.", opts: [{ l: "Back", n: "budget" }] },
-  bud_high: { msg: "Above Rs. 30,000/month - premium options:\n\n3BHK furnished flat in Kathmandu prime\nCommercial shop in Thamel / Lakeside\nFull bungalow in Pokhara\nOffice space in Durbarmarg / Hattisar\n\nTip: Negotiate 10-15% discount for 2+ year lease agreements.", opts: [{ l: "Back", n: "budget" }] },
-  tips: { msg: "Nepal Renting Process and Tips:\n\n1. Find property - Visit in person\n2. Negotiate rent + advance (usually 2-3 months)\n3. Sign written agreement (Bhaada Salaami Patra)\n4. Register at local ward office if more than 1 year\n5. Keep receipts of all payments\n\nImportant:\n- Always get a written contract\n- Clarify who pays electricity/water\n- Check for hidden charges\n- Malpot registration protects both parties", opts: [
-    { l: "Pre-Rental Checklist", n: "tips_checklist" },
-    { l: "Back", n: "root" }
-  ]},
-  tips_checklist: { msg: "Pre-Rental Checklist:\n\nProperty Check:\n- Water supply (24hr or tanker?)\n- Electricity load shedding schedule\n- Internet availability\n- Parking space\n- Roof condition (leaks in monsoon?)\n\nDocument Check:\n- Owner citizenship copy\n- Land ownership certificate (Lalpurja)\n- Previous tenant references\n\nCost Check:\n- Monthly rent amount\n- Advance deposit (refundable?)\n- Maintenance charges\n- Electricity/water included?", opts: [{ l: "Back", n: "tips" }] },
-  website_guide: { msg: "How can I help you use ProperEstate?", opts: [
-    { l: "How to search for properties", n: "wg_search" },
-    { l: "How to list / post a property", n: "wg_post" },
-    { l: "How to rent / book a property", n: "wg_book" },
-    { l: "How to chat with owner", n: "wg_chat" },
-    { l: "Account and profile help", n: "wg_account" },
-    { l: "Back", n: "root" },
-  ]},
-  wg_search: { msg: "To search for properties:\n\n1. Use the search bar at the top of the page\n2. Type a city name, area, or property type\n3. Live suggestions appear as you type\n4. Click a suggestion to go directly to that property\n\nOr use the Filters button to filter by location, type, and price range.", opts: [{ l: "Back to website guide", n: "website_guide" }] },
-  wg_post: { msg: "To list a property for rent:\n\n1. First become a verified seller (Profile > Become Seller)\n2. Upload your Citizenship / NID / Passport\n3. Wait for admin approval (24-48 hours)\n4. Click 'List Property' in the left sidebar\n5. Fill in all property details\n6. Pay Rs. 1000 platform commission via eSewa\n7. Wait for admin approval of your listing\n\nOnce approved, your property goes live!", opts: [{ l: "Back to website guide", n: "website_guide" }] },
-  wg_book: { msg: "To rent a property:\n\n1. Find a property you like on the home page\n2. Click 'Details' to see full information\n3. Click 'Request to Rent'\n4. Enter how long you want to rent (months/years)\n5. Pay Rs. 5000 security deposit via eSewa\n6. The owner gets notified by email\n7. Chat with the owner using the chat button\n\nThe owner will accept or reject your request.", opts: [{ l: "Back to website guide", n: "website_guide" }] },
-  wg_chat: { msg: "To chat with a property owner:\n\n1. Go to any property details page\n2. Click 'Chat with Owner' button\n3. A chat window opens at the bottom right\n4. Type your message and press Enter\n\nYou can also access all chats by clicking the chat icon in the navigation bar.\n\nNote: Messages auto-delete 1 minute after being read to save database space.", opts: [{ l: "Back to website guide", n: "website_guide" }] },
-  wg_account: { msg: "Account help:\n\nCreate account: Click Login > Create an account\nNew accounts are Buyer accounts by default\n\nBecome a Seller:\n1. Go to Profile (top right avatar)\n2. Scroll to 'Become a Seller'\n3. Upload your ID document\n4. Wait for admin verification\n\nEdit profile: Click your avatar > My Profile\nChange photo: Click camera icon on your avatar", opts: [{ l: "Back to website guide", n: "website_guide" }] },
-};
-
-/* ===== SMART SUGGESTOR COMPONENT ===== */
 const SmartSuggestor = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [chatLog, setChatLog] = useState([]);
-  const [freeInput, setFreeInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]); // OpenAI message history
   const bottomRef = useRef();
+  const inputRef = useRef();
+
+  const QUICK_ACTIONS = [
+    { icon: "🏠", label: "Rent a flat in Kathmandu" },
+    { icon: "💰", label: "Cheapest rentals in Nepal" },
+    { icon: "🏢", label: "Commercial space Pokhara" },
+    { icon: "📋", label: "How to list my property" },
+    { icon: "⚖️", label: "Rental agreement process" },
+    { icon: "🗺️", label: "Best areas to rent in Chitwan" },
+  ];
 
   useEffect(() => {
-    if (isOpen && chatLog.length === 0) {
-      const root = RENT_TREE.root;
-      setChatLog([{ from: "bot", text: root.msg, opts: root.opts }]);
+    if (isOpen && messages.length === 0) {
+      setMessages([{
+        role: "assistant",
+        content: "Namaste! 🙏 I'm **RentBot**, your AI expert for Nepal real estate.\n\nI know everything about renting in Nepal — prices, locations, laws, and how to use ProperEstate. Ask me anything!",
+        id: Date.now()
+      }]);
     }
   }, [isOpen]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatLog, isTyping]);
+  }, [messages, loading]);
 
-  const addBotResponse = (response) => {
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      setChatLog(prev => [...prev, { from: "bot", text: response.msg, opts: response.opts }]);
-    }, 600);
-  };
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [isOpen]);
 
-  const handleOption = (opt) => {
-    const node = RENT_TREE[opt.n];
-    if (!node) return;
-    setChatLog(prev => [...prev, { from: "user", text: opt.l }]);
-    addBotResponse(node);
+  const sendMessage = async (text) => {
+    const msg = (text || input).trim();
+    if (!msg || loading) return;
+    setInput("");
+
+    const userMsg = { role: "user", content: msg, id: Date.now() };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+
+    const newHistory = [...history, { role: "user", content: msg }];
+    setHistory(newHistory);
+
+    try {
+      const res = await fetch(`${API_URL}/ai-advisor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newHistory })
+      });
+      const data = await res.json();
+      const reply = data.reply || "Sorry, I couldn't process that. Please try again.";
+      setMessages(prev => [...prev, { role: "assistant", content: reply, id: Date.now() + 1 }]);
+      setHistory(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Connection error. Please check your internet and try again.", id: Date.now() + 1 }]);
+    }
+    setLoading(false);
   };
 
   const handleReset = () => {
-    setChatLog([{ from: "bot", text: RENT_TREE.root.msg, opts: RENT_TREE.root.opts }]);
+    setMessages([{
+      role: "assistant",
+      content: "Namaste! 🙏 I'm **RentBot**, your AI expert for Nepal real estate.\n\nI know everything about renting in Nepal — prices, locations, laws, and how to use ProperEstate. Ask me anything!",
+      id: Date.now()
+    }]);
+    setHistory([]);
+    setInput("");
   };
 
-  const submitFree = (e) => {
-    e.preventDefault();
-    const text = freeInput.trim();
-    if (!text) return;
-    setFreeInput("");
-    setChatLog(prev => [...prev, { from: "user", text }]);
-    const intent = detectIntent(text);
-    const response = getResponse(intent, text);
-    addBotResponse(response);
+  // Simple markdown-like renderer for bold text
+  const renderContent = (text) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i}>{part.slice(2, -2)}</strong>;
+      }
+      return <span key={i} style={{ whiteSpace: "pre-wrap" }}>{part}</span>;
+    });
   };
+
+  const formatTime = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
     <>
-      <button className="suggestor-trigger-btn" onClick={() => setIsOpen(!isOpen)}>
-        Rent Advisor
+      <style>{SUGGESTOR_STYLES}</style>
+      <button className="sug-fab" onClick={() => setIsOpen(o => !o)}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Rent Advisor</span>
       </button>
+
       {isOpen && (
-        <div className="suggestor-panel">
-          <div className="suggestor-header">
-            <span>Nepal Rent Advisor</span>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={handleReset} title="Restart" style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16 }}>&#8635;</button>
-              <button onClick={() => setIsOpen(false)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 16 }}>&#x2715;</button>
+        <div className="sug-window">
+          {/* Header */}
+          <div className="sug-header">
+            <div className="sug-header-left">
+              <div className="sug-bot-avatar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </div>
+              <div>
+                <div className="sug-header-name">RentBot AI</div>
+                <div className="sug-header-sub">
+                  <span className="sug-online-dot"></span> Nepal Real Estate Expert
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button className="sug-icon-btn" onClick={handleReset} title="New conversation">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+              </button>
+              <button className="sug-icon-btn" onClick={() => setIsOpen(false)} title="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
             </div>
           </div>
-          <div className="suggestor-messages">
-            {chatLog.map((msg, i) => (
-              <div key={i} className={"suggestor-msg " + msg.from}>
-                <div className="suggestor-bubble">{msg.text}</div>
-                {msg.from === "bot" && msg.opts && i === chatLog.length - 1 && !isTyping && (
-                  <div className="suggestor-options">
-                    {msg.opts.map((opt, j) => (
-                      <button key={j} className="suggestor-opt-btn" onClick={() => handleOption(opt)}>
-                        {opt.l}
-                      </button>
-                    ))}
+
+          {/* Messages */}
+          <div className="sug-messages">
+            {messages.map((msg, i) => (
+              <div key={msg.id || i} className={"sug-msg-row " + msg.role}>
+                {msg.role === "assistant" && (
+                  <div className="sug-bot-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                   </div>
                 )}
+                <div className={"sug-bubble " + msg.role}>
+                  <div className="sug-bubble-text">{renderContent(msg.content)}</div>
+                  <div className="sug-bubble-time">{formatTime()}</div>
+                </div>
               </div>
             ))}
-            {isTyping && (
-              <div className="suggestor-msg bot">
-                <div className="suggestor-typing"><span></span><span></span><span></span></div>
+
+            {loading && (
+              <div className="sug-msg-row assistant">
+                <div className="sug-bot-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div className="sug-bubble assistant loading-bubble">
+                  <span className="sug-dot"></span>
+                  <span className="sug-dot"></span>
+                  <span className="sug-dot"></span>
+                </div>
               </div>
             )}
+
+            {/* Quick actions — show only on first message */}
+            {messages.length === 1 && !loading && (
+              <div className="sug-quick-actions">
+                <p className="sug-quick-label">Quick questions:</p>
+                <div className="sug-quick-grid">
+                  {QUICK_ACTIONS.map((a, i) => (
+                    <button key={i} className="sug-quick-btn" onClick={() => sendMessage(a.label)}>
+                      <span>{a.icon}</span> {a.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
-          <form className="suggestor-input-row" onSubmit={submitFree}>
-            <input value={freeInput} onChange={e => setFreeInput(e.target.value)} placeholder="Type anything..." className="suggestor-free-input" />
-            <button type="submit" className="suggestor-send-btn">&#10148;</button>
-          </form>
+
+          {/* Input */}
+          <div className="sug-input-area">
+            <div className="sug-input-wrap">
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
+                placeholder="Ask about Nepal rentals..."
+                className="sug-input"
+                disabled={loading}
+              />
+              <button
+                className={"sug-send-btn " + (input.trim() && !loading ? "ready" : "")}
+                onClick={() => sendMessage()}
+                disabled={!input.trim() || loading}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+            <p className="sug-footer-note">Powered by AI · ProperEstate Nepal</p>
+          </div>
         </div>
       )}
     </>
   );
 };
 
+const SUGGESTOR_STYLES = `
+/* ===== RENTBOT FAB ===== */
+.sug-fab {
+  position: fixed;
+  bottom: 100px;
+  right: 28px;
+  background: linear-gradient(135deg, #c5a059 0%, #a07830 100%);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 11px 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 24px rgba(197,160,89,0.5);
+  z-index: 1500;
+  transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.3px;
+}
+.sug-fab:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 32px rgba(197,160,89,0.6); }
+.sug-fab:active { transform: scale(0.97); }
+
+/* ===== WINDOW ===== */
+.sug-window {
+  position: fixed;
+  bottom: 170px;
+  right: 28px;
+  width: 380px;
+  height: 560px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 12px 50px rgba(0,0,0,0.18), 0 2px 10px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1500;
+  animation: sugSlideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+@keyframes sugSlideUp {
+  from { opacity: 0; transform: translateY(28px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===== HEADER ===== */
+.sug-header {
+  background: linear-gradient(135deg, #1a3c34 0%, #2d5a4e 60%, #3a7a6a 100%);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.sug-header::before {
+  content: "";
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+.sug-header-left { display: flex; align-items: center; gap: 10px; }
+.sug-bot-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #c5a059, #a07830);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+.sug-header-name { color: #fff; font-weight: 700; font-size: 0.95rem; }
+.sug-header-sub { display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.7); font-size: 0.72rem; margin-top: 1px; }
+.sug-online-dot { width: 7px; height: 7px; background: #4caf50; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(76,175,80,0.3); animation: sugPulse 2s infinite; }
+@keyframes sugPulse { 0%,100%{box-shadow:0 0 0 2px rgba(76,175,80,0.3);} 50%{box-shadow:0 0 0 5px rgba(76,175,80,0.1);} }
+.sug-icon-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.sug-icon-btn:hover { background: rgba(255,255,255,0.28); }
+
+/* ===== MESSAGES AREA ===== */
+.sug-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f8f9fa;
+  scroll-behavior: smooth;
+}
+.sug-messages::-webkit-scrollbar { width: 4px; }
+.sug-messages::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+/* ===== MESSAGE ROWS ===== */
+.sug-msg-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  animation: sugMsgIn 0.22s ease;
+  margin-bottom: 2px;
+}
+@keyframes sugMsgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sug-msg-row.user { flex-direction: row-reverse; }
+.sug-bot-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, #1a3c34, #2d5a4e);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+/* ===== BUBBLES ===== */
+.sug-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+  position: relative;
+}
+.sug-bubble.assistant {
+  background: #fff;
+  color: #111;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.sug-bubble.user {
+  background: linear-gradient(135deg, #1a3c34, #2d5a4e);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.sug-bubble-text { white-space: pre-wrap; }
+.sug-bubble-time { font-size: 0.62rem; opacity: 0.5; margin-top: 4px; text-align: right; }
+
+/* ===== LOADING DOTS ===== */
+.loading-bubble {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 16px;
+  min-width: 56px;
+}
+.sug-dot {
+  width: 7px; height: 7px;
+  background: #bbb;
+  border-radius: 50%;
+  animation: sugBounce 1.2s infinite;
+  display: inline-block;
+}
+.sug-dot:nth-child(2) { animation-delay: 0.2s; }
+.sug-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes sugBounce {
+  0%,60%,100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* ===== QUICK ACTIONS ===== */
+.sug-quick-actions { margin-top: 8px; }
+.sug-quick-label { font-size: 0.72rem; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 4px; }
+.sug-quick-grid { display: flex; flex-direction: column; gap: 6px; }
+.sug-quick-btn {
+  background: #fff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.18s;
+  font-weight: 500;
+}
+.sug-quick-btn:hover {
+  background: #f0f7f5;
+  border-color: #1a3c34;
+  color: #1a3c34;
+  transform: translateX(3px);
+}
+
+/* ===== INPUT AREA ===== */
+.sug-input-area {
+  padding: 10px 14px 14px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+.sug-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #f4f4f4;
+  border-radius: 26px;
+  padding: 5px 5px 5px 16px;
+  gap: 6px;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.sug-input-wrap:focus-within {
+  box-shadow: 0 0 0 2px rgba(26,60,52,0.2);
+  background: #fff;
+}
+.sug-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.88rem;
+  outline: none;
+  color: #111;
+  padding: 6px 0;
+}
+.sug-input::placeholder { color: #aaa; }
+.sug-input:disabled { opacity: 0.6; }
+.sug-send-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #e0e0e0;
+  color: #aaa;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.sug-send-btn.ready {
+  background: linear-gradient(135deg, #c5a059, #a07830);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(197,160,89,0.4);
+}
+.sug-send-btn.ready:hover { transform: scale(1.1); }
+.sug-send-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+/* ===== POWERED BY ===== */
+.sug-powered {
+  text-align: center;
+  font-size: 0.65rem;
+  color: #ccc;
+  padding: 4px 0 2px;
+  letter-spacing: 0.3px;
+}
+
+@media (max-width: 480px) {
+  .sug-window { width: calc(100vw - 20px); right: 10px; bottom: 220px; height: 65vh; }
+  .sug-fab { right: 10px; }
+}
+`;
 /* ===== HELP CENTER ===== */
 const HelpCenter = () => {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -1195,3 +1364,4 @@ function App() {
 }
 
 export default function AppWrapper() { return <BrowserRouter><App /></BrowserRouter>; }
+
