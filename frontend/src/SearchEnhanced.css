@@ -1,0 +1,298 @@
+/* ===================================================================
+   ENHANCED SEARCH — Pill-style minimal search bar
+   Single source of truth. AestheticDesign.css search rules removed.
+   =================================================================== */
+
+/* ---- Wrapper ---- */
+.search-wrapper-enhanced {
+  position: relative;
+  flex: 1;
+  max-width: 460px;
+}
+
+/* ---- Pill container ---- */
+.search-container-enhanced {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 6px 0 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  transition: border-color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+  overflow: hidden;
+}
+
+.search-container-enhanced:focus-within {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(200, 169, 110, 0.5);
+  box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.08);
+}
+
+.header.scrolled .search-container-enhanced {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ---- Left icon ---- */
+.search-icon-enhanced {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(240, 237, 232, 0.45);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-right: 8px;
+  transition: color 200ms ease;
+}
+.search-container-enhanced:focus-within .search-icon-enhanced {
+  color: rgba(200, 169, 110, 0.8);
+}
+
+/* ---- Loading spinner ---- */
+.search-loading-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(200, 169, 110, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: searchSpin 0.7s linear infinite;
+}
+
+@keyframes searchSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Input ---- */
+.search-input-enhanced {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: rgba(240, 237, 232, 0.9);
+  outline: none;
+  min-width: 0;
+  height: 100%;
+}
+.search-input-enhanced::placeholder {
+  color: rgba(240, 237, 232, 0.4);
+}
+
+/* ---- Clear button ---- */
+.search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: rgba(240, 237, 232, 0.4);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.search-clear-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(240, 237, 232, 0.9);
+}
+
+/* ---- Search button ---- */
+.search-btn-enhanced {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: rgba(200, 169, 110, 0.7);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  flex-shrink: 0;
+}
+.search-btn-enhanced:hover {
+  background: rgba(200, 169, 110, 0.1);
+  color: var(--accent);
+}
+
+/* ---- Suggestions dropdown ---- */
+.search-suggestions-enhanced {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 340px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  z-index: 2000;
+  animation: searchDropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes searchDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- Sections ---- */
+.search-section {
+  padding: 6px;
+}
+
+.search-section + .search-section {
+  border-top: 1px solid var(--border);
+}
+
+.search-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.search-section-header svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ---- Suggestion item ---- */
+.search-sug-item-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.search-sug-item-enhanced:hover {
+  background: var(--bg-secondary);
+}
+
+/* ---- Suggestion image ---- */
+.sug-image-enhanced {
+  position: relative;
+  width: 44px;
+  height: 30px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sug-image-enhanced img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sug-category-badge {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  padding: 1px 4px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* ---- Suggestion content ---- */
+.sug-content-enhanced {
+  flex: 1;
+  min-width: 0;
+}
+
+.sug-title-enhanced {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sug-location-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sug-location-enhanced svg {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+/* ---- Suggestion price ---- */
+.sug-price-enhanced {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sug-price-enhanced span {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* ---- Recent / quick items ---- */
+.search-recent-item,
+.search-quick-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.search-recent-item:hover,
+.search-quick-item:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.search-recent-item svg,
+.search-quick-item svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* ---- Scrollbar ---- */
+.search-suggestions-enhanced::-webkit-scrollbar { width: 4px; }
+.search-suggestions-enhanced::-webkit-scrollbar-track { background: transparent; }
+.search-suggestions-enhanced::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .search-wrapper-enhanced { max-width: 100%; }
+  .search-suggestions-enhanced { max-height: 280px; }
+}

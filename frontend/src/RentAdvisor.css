@@ -1,0 +1,60 @@
+/* ===================================================================
+   RENT ADVISOR FLOATING BUTTON — FIX 9: Resize and clean styling
+   =================================================================== */
+
+.rent-advisor-btn {
+  position: fixed;
+  bottom: 24px; /* FIX 9 */
+  right: 24px; /* FIX 9 */
+  height: 40px; /* FIX 9 */
+  padding: 0 16px; /* FIX 9 */
+  border-radius: 20px; /* FIX 9 */
+  background: #C8A96E; /* FIX 9 */
+  color: #1A1A1A; /* FIX 9 */
+  font-size: 13px; /* FIX 9 */
+  font-weight: 500; /* FIX 9 */
+  border: none;
+  box-shadow: none; /* FIX 9 — Remove glow */
+  cursor: pointer;
+  z-index: 50; /* FIX 9 */
+  display: flex;
+  align-items: center;
+  gap: 8px; /* FIX 9 */
+  transition: all var(--transition-base);
+}
+
+.rent-advisor-btn:hover {
+  background: #D4B97A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(200, 169, 110, 0.3);
+}
+
+.rent-advisor-icon {
+  width: 16px; /* FIX 9 */
+  height: 16px; /* FIX 9 */
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px; /* FIX 9 */
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rent-advisor-btn {
+    bottom: 16px;
+    right: 16px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+  
+  .rent-advisor-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 10px;
+  }
+}

@@ -1,0 +1,186 @@
+/* ===================================================================
+   HELP CENTER — Cyberpunk minimal · Rajdhani
+   =================================================================== */
+
+@keyframes helpGridPulse {
+  0%, 100% { opacity: 0.04; }
+  50%       { opacity: 0.08; }
+}
+
+.help-center-page {
+  position: relative;
+  max-width: 560px !important;
+  margin: 0 auto;
+  padding: 32px 20px 60px !important;
+}
+
+/* Neon grid bg */
+.help-center-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: helpGridPulse 4s ease-in-out infinite;
+}
+
+/* Page title override */
+.help-center-page .page-title {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  padding-bottom: 10px;
+}
+.help-center-page .page-title::after {
+  background: rgba(0,212,255,0.5);
+  width: 40px;
+  height: 1px;
+}
+
+.help-center-page > p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Form ────────────────────────────────────────────────────────── */
+.help-form {
+  background: rgba(12,16,28,0.9);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-top: 1px solid rgba(0,212,255,0.3);
+  padding: 16px;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.help-form .form-group {
+  margin-bottom: 0;
+}
+.help-form .form-group label {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(0,212,255,0.5);
+  margin-bottom: 4px;
+  display: block;
+}
+.help-form .form-group input,
+.help-form .form-group textarea {
+  width: 100%;
+  padding: 0 10px;
+  height: 32px;
+  background: rgba(0,212,255,0.03);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 0;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+  outline: none;
+  transition: border-color 180ms ease;
+}
+.help-form .form-group textarea {
+  height: auto;
+  min-height: 90px;
+  padding: 8px 10px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.help-form .form-group input:focus,
+.help-form .form-group textarea:focus {
+  border-color: rgba(0,212,255,0.4);
+  background: rgba(0,212,255,0.05);
+}
+.help-form .form-group input::placeholder,
+.help-form .form-group textarea::placeholder {
+  color: rgba(0,212,255,0.2);
+  font-family: 'Rajdhani', var(--font-sans);
+}
+
+/* Submit button override */
+.help-form .btn-primary {
+  background: transparent;
+  color: rgba(0,212,255,0.9);
+  border: 1px solid rgba(0,212,255,0.35);
+  border-radius: 0;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  height: 34px;
+  padding: 0;
+  transition: all 180ms ease;
+}
+.help-form .btn-primary:hover {
+  border-color: rgba(0,212,255,0.65);
+  color: rgba(0,212,255,1);
+  box-shadow: 0 0 12px rgba(0,212,255,0.1);
+  transform: none;
+}
+
+/* ── Success state ───────────────────────────────────────────────── */
+.help-success {
+  background: rgba(12,16,28,0.9);
+  border: 1px solid rgba(0,255,136,0.2);
+  border-top: 1px solid rgba(0,255,136,0.5);
+  padding: 32px 20px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.help-success > div {
+  font-size: 2rem;
+  color: rgba(0,255,136,0.8);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.help-success h3 {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0,255,136,0.85);
+  margin: 0;
+}
+.help-success p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+.help-success .btn-primary {
+  margin-top: 8px;
+  background: transparent;
+  color: rgba(0,255,136,0.8);
+  border: 1px solid rgba(0,255,136,0.3);
+  border-radius: 0;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  height: 30px;
+  padding: 0 16px;
+}

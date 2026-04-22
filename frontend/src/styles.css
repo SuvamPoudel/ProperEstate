@@ -1,0 +1,91 @@
+/* ===================================================================
+   PROPERESTATE NEPAL — MASTER STYLESHEET
+   All CSS combined in one file for easy management
+   =================================================================== */
+
+/* ===== 1. BASE & RESET ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@200;300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+/* Import all CSS files in order */
+@import './index.css';
+@import './DesignSystem.css';
+@import './App.css';
+@import './Navigation.css';
+@import './HeroSection.css';
+@import './SearchEnhanced.css';
+@import './FilterPanel.css';
+@import './PropertyCards.css';
+@import './ProfilePage.css';
+@import './LandDetailsPage.css';
+@import './ChatbotPage.css';
+@import './RentalPartnerPage.css';
+@import './BuyersSectionPage.css';
+@import './Sidebar.css';
+@import './ThemeSwitcher.css';
+@import './Animations.css';
+@import './AestheticDesign.css';
+@import './PageTransitions.css';
+@import './ScrollAnimations.css';
+@import './RentAdvisor.css';
+@import './MissingPages.css';
+@import './HelpCenter.css';
+@import './DashboardPages.css';
+
+/* ===== GLOBAL OVERRIDES ===== */
+/* Ensure consistent styling across all components */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0A0E1A;
+  color: #F0EDE8;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C8A96E;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4B97A;
+}
+
+/* Selection */
+::selection {
+  background: #C8A96E;
+  color: #1A1A1A;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid #C8A96E;
+  outline-offset: 2px;
+}

@@ -1,0 +1,255 @@
+/* ===================================================================
+   NAVIGATION — Always transparent, blends into hero video
+   No background, no border. Frosted glass only after scroll.
+   Dark mode only — light mode removed.
+   =================================================================== */
+
+/* ---- Header shell ---- */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* ---- Nav bar ---- */
+.nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-lg);
+  height: 60px;
+  gap: 16px;
+  background: transparent;
+  border-bottom: none;
+  transition: background 500ms ease, border-color 500ms ease, box-shadow 500ms ease;
+}
+
+/* ── Scrolled: subtle frosted dark glass ─────────────────────────── */
+.header.scrolled .nav-bar {
+  background: rgba(8, 11, 20, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ================================================================
+   LOGO
+   ================================================================ */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  color: #F0EDE8;
+  transition: color 200ms ease;
+  text-decoration: none;
+}
+.logo:hover { color: var(--accent); }
+
+/* Logo dot */
+.logo::after {
+  content: '.';
+  color: var(--accent);
+  font-size: 1.5rem;
+  line-height: 0;
+  margin-left: -1px;
+  font-style: normal;
+}
+
+/* ================================================================
+   HAMBURGER — see Sidebar.css for morph animation
+   ================================================================ */
+.menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(240, 237, 232, 0.85);
+  transition: background 150ms ease, color 150ms ease;
+  flex-shrink: 0;
+}
+.menu-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #F0EDE8;
+}
+
+/* ================================================================
+   NAV RIGHT
+   ================================================================ */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   THEME TOGGLE — hidden (dark only now)
+   ================================================================ */
+.nav-theme-toggle { display: none !important; }
+
+/* ================================================================
+   NAV ICON BUTTONS
+   ================================================================ */
+.nav-chat-btn,
+.nav-requests-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(240, 237, 232, 0.75);
+  transition: background 150ms ease, color 150ms ease;
+  flex-shrink: 0;
+}
+.nav-chat-btn:hover,
+.nav-requests-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #F0EDE8;
+}
+
+/* Badge */
+.nav-requests-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  background: #E53935;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  animation: badgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes badgePop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+/* ================================================================
+   NAV ITEM (Dashboard link)
+   ================================================================ */
+.nav-item {
+  padding: 0.3rem 0.6rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: rgba(240, 237, 232, 0.7);
+  transition: color 150ms ease;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+.nav-item:hover { color: #F0EDE8; }
+
+/* ================================================================
+   USER MENU & AVATAR
+   ================================================================ */
+.user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(200, 169, 110, 0.35);
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.nav-avatar:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.18);
+}
+
+/* ================================================================
+   DROPDOWN MENU
+   ================================================================ */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: #0F1422;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  padding: 4px;
+  animation: dropdownSlide 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100;
+}
+@keyframes dropdownSlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dropdown-menu > div {
+  padding: 0.55rem 0.85rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: rgba(240, 237, 232, 0.75);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 120ms ease, color 120ms ease;
+}
+.dropdown-menu > div:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--accent);
+}
+
+/* ================================================================
+   LOGIN BUTTON
+   ================================================================ */
+.nav-right .btn-primary {
+  height: 32px;
+  padding: 0 1rem;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 768px) {
+  .nav-bar { padding: 0 var(--space-md); height: 54px; gap: 10px; }
+  .nav-item { display: none; }
+  .logo { font-size: 1rem; }
+  .nav-right { gap: 2px; }
+}
+@media (max-width: 480px) {
+  .nav-bar { padding: 0 var(--space-sm); }
+}

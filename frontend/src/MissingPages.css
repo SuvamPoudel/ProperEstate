@@ -1,0 +1,302 @@
+/* ===================================================================
+   MISSING PAGES — Chatbot, Chat, Partner, Buyer shared styles
+   =================================================================== */
+
+/* ===== CHATBOT PAGE ===== */
+.chatbot-container {
+  display: flex;
+  height: calc(100vh - 72px);
+  background: var(--bg-primary);
+}
+.chatbot-sidebar {
+  width: 260px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.chatbot-sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.chatbot-sidebar-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.conversation-list { padding: 12px; }
+.conversation-item {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-bottom: 6px;
+}
+.conversation-item:hover { background: var(--bg-secondary); }
+.conversation-item.active { background: var(--accent); color: #1A1A1A; }
+.conversation-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; color: var(--text-primary); }
+.conversation-preview { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chatbot-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+}
+.chatbot-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.chatbot-messages {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.message-bubble.user {
+  align-self: flex-end;
+  max-width: 70%;
+  padding: 12px 16px;
+  background: rgba(200, 169, 110, 0.12);
+  border: 1px solid rgba(200, 169, 110, 0.3);
+  border-radius: 12px 12px 2px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.message-bubble.bot {
+  align-self: flex-start;
+  max-width: 70%;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 2px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 2px;
+  align-self: flex-start;
+  max-width: 60px;
+}
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typingDot 1.4s infinite;
+}
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingDot {
+  0%, 60%, 100% { transform: scale(1); }
+  30% { transform: scale(1.4); }
+}
+.chatbot-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+.chatbot-input {
+  flex: 1;
+  height: 44px;
+  padding: 0 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all var(--transition-base);
+}
+.chatbot-input:focus { border-color: var(--accent); }
+.chatbot-input::placeholder { color: var(--text-muted); }
+.chatbot-send-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  color: #1A1A1A;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+}
+.chatbot-send-btn:hover { background: var(--accent-hover); transform: scale(1.08); }
+.chatbot-send-btn svg { width: 16px; height: 16px; }
+
+/* ===== PARTNER PAGE ===== */
+.partner-page { background: var(--bg-primary); }
+.partner-hero {
+  background: var(--bg-dark);
+  padding: 100px 24px;
+  text-align: center;
+  color: var(--text-on-dark);
+}
+.partner-hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 700;
+  color: var(--text-on-dark);
+  margin-bottom: 24px;
+  line-height: 1.1;
+}
+.partner-hero p {
+  font-size: 18px;
+  color: rgba(240, 237, 232, 0.8);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.partner-benefits {
+  padding: 80px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 48px;
+}
+.benefit-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+.benefit-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
+.benefit-icon { font-size: 40px; margin-bottom: 16px; }
+.benefit-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+.benefit-description { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+/* ===== BUYER PAGE ===== */
+.buyer-page { background: var(--bg-primary); }
+.buyer-hero { padding: 100px 24px 80px; text-align: center; }
+.buyer-hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  line-height: 1.1;
+}
+.buyer-hero p { font-size: 18px; color: var(--text-secondary); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+.buyer-steps { padding: 80px 24px; max-width: 1200px; margin: 0 auto; }
+.steps-flow { display: flex; gap: 40px; margin-top: 48px; align-items: flex-start; }
+.step-item { flex: 1; text-align: center; }
+.step-number {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #1A1A1A;
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+}
+.step-title { font-family: var(--font-serif); font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+.step-description { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.buyer-testimonials { padding: 80px 24px; background: var(--bg-secondary); }
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  max-width: 1200px;
+  margin: 48px auto 0;
+}
+.testimonial-card {
+  padding: 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+.testimonial-card::before {
+  content: '"';
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  font-family: var(--font-serif);
+  font-size: 72px;
+  color: var(--accent);
+  opacity: 0.15;
+  line-height: 1;
+}
+.testimonial-text { font-size: 15px; color: var(--text-primary); line-height: 1.7; margin-bottom: 20px; position: relative; z-index: 1; }
+.testimonial-author { display: flex; align-items: center; gap: 12px; }
+.testimonial-avatar { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; }
+.testimonial-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.testimonial-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.testimonial-role { font-size: 12px; color: var(--text-muted); }
+
+/* ===== FORM FIELDS (shared) ===== */
+.form-field { margin-bottom: 28px; }
+.form-field label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all var(--transition-base);
+}
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200, 169, 110, 0.1);
+}
+.form-field textarea { min-height: 100px; resize: vertical; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .benefits-grid, .testimonials-grid { grid-template-columns: 1fr; }
+  .steps-flow { flex-direction: column; }
+}
+@media (max-width: 768px) {
+  .partner-hero h1, .buyer-hero h1 { font-size: 40px; }
+  .chatbot-sidebar { width: 100%; max-width: 260px; }
+}

@@ -1,0 +1,183 @@
+/* ===================================================================
+   AESTHETIC DESIGN — Supplemental styles that don't conflict
+   with the unified DesignSystem.css
+   =================================================================== */
+
+/* ===== SEARCH ENHANCED =====
+   All search bar styles live in SearchEnhanced.css — no duplicates here.
+   ============================= */
+
+/* ===== FEATURED LOCATIONS ===== */
+.featured-locations-section {
+  padding: 80px 0;
+  background: var(--bg-secondary);
+  margin: 60px 0;
+}
+.section-header-center {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.section-header-center h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.section-subtitle {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+.locations-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+  height: 560px;
+}
+.location-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: var(--radius-md);
+}
+.location-card-large { grid-row: 1 / 3; }
+.location-card:hover { transform: scale(1.02); z-index: 2; }
+.location-image { width: 100%; height: 100%; position: relative; overflow: hidden; }
+.location-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.location-card:hover .location-image img { transform: scale(1.08); }
+.location-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 28px;
+  color: white;
+}
+.location-overlay h3 {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: white;
+}
+.location-card-large .location-overlay h3 { font-size: 2.5rem; }
+.location-overlay p { font-size: 14px; margin: 0 0 10px; color: rgba(255,255,255,0.8); }
+.location-count {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ===== CTA SECTION ===== */
+.cta-section {
+  background: var(--bg-secondary);
+  padding: 80px 24px;
+  margin: 80px 0 0;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.cta-content { max-width: 560px; margin: 0 auto; }
+.cta-content h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+.cta-content p { font-size: var(--text-base); color: var(--text-secondary); margin-bottom: 32px; line-height: 1.7; }
+.cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* ===== HERO CTA GROUP ===== */
+.hero-cta-group {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 32px 0 48px;
+  flex-wrap: wrap;
+}
+
+/* ===== CARD HOVER OVERLAY ===== */
+.card-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  z-index: 1;
+}
+.land-card:hover .card-hover-overlay { opacity: 1; }
+.card-hover-cta {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(8px);
+  transition: transform 0.35s ease;
+  font-weight: 600;
+}
+.land-card:hover .card-hover-cta { transform: translateY(0); }
+.card-hover-cta::after { content: '→'; transition: transform 0.25s ease; }
+.land-card:hover .card-hover-cta::after { transform: translateX(4px); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  color: var(--text-muted);
+}
+.empty-state-icon { margin: 0 auto 24px; color: var(--text-muted); opacity: 0.4; }
+.empty-state h3 {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+  font-weight: 600;
+}
+.empty-state p {
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-lg);
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .locations-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    height: auto;
+  }
+  .location-card-large { grid-row: auto; grid-column: 1 / 3; height: 280px; }
+  .location-card { height: 220px; }
+  /* search-wrapper responsive handled in SearchEnhanced.css */
+}
+@media (max-width: 768px) {
+  .locations-grid { grid-template-columns: 1fr; gap: 12px; }
+  .location-card-large { grid-column: 1; height: 260px; }
+  .location-card { height: 180px; }
+  .cta-buttons { flex-direction: column; align-items: center; }
+  .hero-cta-group { flex-direction: column; align-items: center; }
+}

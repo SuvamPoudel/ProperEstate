@@ -1,0 +1,515 @@
+/* ===================================================================
+   PROFILE PAGE — Cyberpunk minimal · Rajdhani · No gaps
+   =================================================================== */
+
+/* ── Keyframes ───────────────────────────────────────────────────── */
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.05; }
+  50%       { opacity: 0.11; }
+}
+@keyframes scanline {
+  0%   { transform: translateY(-4px); }
+  100% { transform: translateY(100vh); }
+}
+@keyframes floatParticle {
+  0%   { transform: translateY(0px) translateX(0px); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-120px) translateX(20px); opacity: 0; }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(16,20,31,0.95), 0 0 10px rgba(0,212,255,0.2); }
+  50%       { box-shadow: 0 0 0 2px rgba(16,20,31,0.95), 0 0 22px rgba(0,212,255,0.45); }
+}
+@keyframes neonFlicker {
+  0%, 92%, 100% { opacity: 1; }
+  93%            { opacity: 0.7; }
+  95%            { opacity: 1; }
+  97%            { opacity: 0.8; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(0,212,255,0.15); }
+  50%       { border-color: rgba(0,212,255,0.35); }
+}
+@keyframes horizonPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+@keyframes sellerOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page wrapper ────────────────────────────────────────────────── */
+.profile-page-wrapper {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 16px 40px;
+  overflow: hidden;
+}
+
+/* Dark city base */
+.profile-page-wrapper::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg, #080B14 0%, #0C1020 50%, #080B14 100%);
+}
+
+/* Neon grid */
+.profile-page-wrapper::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.07) 1px, transparent 1px);
+  background-size: 36px 36px;
+  animation: gridPulse 3.5s ease-in-out infinite;
+}
+
+/* Scanline + particles layer */
+.profile-city-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Moving scanline */
+.profile-city-bg::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,212,255,0.2) 30%, rgba(0,212,255,0.5) 50%, rgba(0,212,255,0.2) 70%, transparent 100%);
+  animation: scanline 6s linear infinite;
+}
+/* Ambient glow pools */
+.profile-city-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 35% at 15% 85%, rgba(0,212,255,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 25% at 85% 75%, rgba(160,0,255,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 20% at 50% 100%, rgba(0,212,255,0.07) 0%, transparent 50%);
+}
+
+/* ── Card ────────────────────────────────────────────────────────── */
+.profile-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: rgba(12, 16, 28, 0.92);
+  border: 1px solid rgba(0,212,255,0.15);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both, borderGlow 4s ease-in-out infinite;
+  overflow: hidden;
+}
+/* Top neon line */
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.8) 50%, transparent);
+  animation: horizonPulse 3s ease-in-out infinite;
+  z-index: 3;
+}
+/* Corner brackets */
+.profile-card::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-right: 1px solid rgba(0,212,255,0.5);
+  border-bottom: 1px solid rgba(0,212,255,0.5);
+  z-index: 3;
+}
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid rgba(0,212,255,0.08);
+}
+
+.profile-avatar-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,212,255,0.45);
+  background: #080B14;
+  overflow: visible;
+  flex-shrink: 0;
+  animation: glowPulse 3.5s ease-in-out infinite;
+}
+.profile-avatar-ring > img,
+.profile-avatar-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: block;
+}
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.profile-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: rgba(0,212,255,0.85);
+  background: #080B14;
+  letter-spacing: 0.05em;
+}
+.profile-camera-btn {
+  position: absolute;
+  bottom: -2px; right: -2px;
+  width: 18px; height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,212,255,0.12);
+  border: 1px solid rgba(0,212,255,0.4);
+  border-radius: 50%;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 180ms ease;
+  z-index: 2;
+  color: rgba(0,212,255,0.9);
+  line-height: 1;
+}
+.profile-camera-btn:hover {
+  background: rgba(0,212,255,0.28);
+  border-color: rgba(0,212,255,0.9);
+}
+
+.profile-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.profile-display-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #F4F1EC;
+  margin: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+  animation: neonFlicker 7s ease-in-out infinite;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-display-email {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.65rem;
+  color: rgba(0,212,255,0.5);
+  margin: 0;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  background: rgba(0,212,255,0.07);
+  border: 1px solid rgba(0,212,255,0.22);
+  color: rgba(0,212,255,0.85);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  width: fit-content;
+}
+
+/* ── Stats ───────────────────────────────────────────────────────── */
+.profile-stats-row {
+  display: flex;
+  border-bottom: 1px solid rgba(0,212,255,0.08);
+}
+.profile-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-right: 1px solid rgba(0,212,255,0.08);
+  transition: background 180ms ease;
+}
+.profile-stat:last-child { border-right: none; }
+.profile-stat:hover { background: rgba(0,212,255,0.04); }
+.profile-stat-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(0,212,255,0.9);
+  line-height: 1;
+}
+.profile-stat-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.5rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-top: 2px;
+}
+
+/* ── Form ────────────────────────────────────────────────────────── */
+.profile-form-new {
+  padding: 10px 14px 12px;
+}
+.profile-field {
+  margin-bottom: 7px;
+}
+.profile-field:last-of-type { margin-bottom: 0; }
+
+.profile-field label {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(0,212,255,0.45);
+  margin-bottom: 3px;
+}
+.profile-field.readonly label { opacity: 0.3; }
+
+.profile-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.profile-input-icon {
+  position: absolute;
+  left: 9px;
+  font-size: 11px;
+  color: rgba(0,212,255,0.35);
+  pointer-events: none;
+  z-index: 1;
+  line-height: 1;
+}
+.profile-input-wrap input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px 0 26px;
+  background: rgba(0,212,255,0.03);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 180ms ease, background 180ms ease;
+  letter-spacing: 0.04em;
+}
+.profile-input-wrap input:focus {
+  border-color: rgba(0,212,255,0.4);
+  background: rgba(0,212,255,0.05);
+}
+.profile-input-wrap input:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+.profile-input-wrap input::placeholder {
+  color: rgba(0,212,255,0.2);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.profile-field-hint  { font-family: 'Rajdhani', sans-serif; font-size: 0.52rem; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.06em; }
+.profile-field-error { font-family: 'Rajdhani', sans-serif; font-size: 0.52rem; color: #FF4444; margin-top: 2px; }
+.profile-field-ok    { font-family: 'Rajdhani', sans-serif; font-size: 0.52rem; color: #00FF88; margin-top: 2px; }
+
+/* ── Save button ─────────────────────────────────────────────────── */
+.profile-save-btn {
+  width: 100%;
+  height: 30px;
+  background: transparent;
+  color: rgba(0,212,255,0.85);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.profile-save-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,212,255,0.06);
+  transform: translateX(-100%);
+  transition: transform 280ms ease;
+}
+.profile-save-btn:hover {
+  border-color: rgba(0,212,255,0.65);
+  color: rgba(0,212,255,1);
+  box-shadow: 0 0 12px rgba(0,212,255,0.12);
+}
+.profile-save-btn:hover::after { transform: translateX(0); }
+.profile-save-btn.saved {
+  border-color: rgba(0,255,136,0.45);
+  color: rgba(0,255,136,0.9);
+}
+.profile-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Seller status boxes ─────────────────────────────────────────── */
+.seller-status-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(0,212,255,0.08);
+}
+.seller-status-box.approved {
+  background: rgba(0,255,136,0.03);
+  border-left: 2px solid rgba(0,255,136,0.45);
+}
+.seller-status-box.pending {
+  background: rgba(255,170,0,0.03);
+  border-left: 2px solid rgba(255,170,0,0.45);
+}
+.seller-status-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.seller-status-box h3 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 1px;
+}
+.seller-status-box.approved h3 { color: rgba(0,255,136,0.85); }
+.seller-status-box.pending  h3 { color: rgba(255,170,0,0.85); }
+.seller-status-box p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.62rem;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+}
+.seller-status-box.approved p { color: rgba(0,255,136,0.5); }
+.seller-status-box.pending  p { color: rgba(255,170,0,0.5); }
+
+/* ── Become a Seller accordion ───────────────────────────────────── */
+.become-seller-accordion {
+  border-top: 1px solid rgba(0,212,255,0.08);
+}
+.become-seller-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.become-seller-toggle:hover {
+  background: rgba(0,212,255,0.04);
+}
+.become-seller-toggle.open {
+  background: rgba(0,212,255,0.05);
+  border-bottom: 1px solid rgba(0,212,255,0.08);
+}
+.bst-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(0,212,255,0.75);
+}
+.bst-chevron {
+  font-size: 0.55rem;
+  color: rgba(0,212,255,0.5);
+  transition: transform 200ms ease;
+}
+.become-seller-toggle.open .bst-chevron {
+  transform: rotate(180deg);
+}
+.become-seller-body {
+  padding: 10px 14px 12px;
+  animation: sellerOpen 200ms ease both;
+}
+.become-seller-body > p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+.seller-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.seller-select {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  background: rgba(0,212,255,0.03);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 0;
+  color: var(--text-primary);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 180ms ease;
+}
+.seller-select:focus { border-color: rgba(0,212,255,0.4); }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .profile-page-wrapper { padding: 70px 0 32px; }
+  .profile-card { max-width: 100%; }
+}

@@ -1,0 +1,485 @@
+/* ===================================================================
+   PROPERTY CARDS — Red Dead Redemption / Old-West Cinematic
+   Hover: all other cards dim + desaturate dramatically.
+   Active card: sepia-gold vignette, border lights up, title sweeps in.
+   Typography: Cormorant Garamond editorial throughout.
+   =================================================================== */
+
+/* ── Section heading above grid ─────────────────────────────────── */
+.lands-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.lands-section-count {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Grid ────────────────────────────────────────────────────────── */
+.lands-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin-top: 20px;
+  padding-bottom: var(--space-2xl);
+}
+
+/* ── RDR2 group effect: when grid is hovered, dim all cards ──────── */
+.lands-grid:has(.land-card:hover) .land-card:not(:hover) {
+  filter: brightness(0.32) saturate(0.15);
+  transform: scale(0.982);
+}
+
+/* ── Card shell ──────────────────────────────────────────────────── */
+.land-card {
+  position: relative;
+  aspect-ratio: 4 / 3;            /* landscape — less tall, more natural */
+  overflow: hidden;
+  cursor: pointer;
+  background: #0A0E1A;
+
+  opacity: 0;
+  animation: cardEnter 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  transition:
+    filter 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 420ms ease;
+}
+
+/* Stagger */
+.land-card:nth-child(1)  { animation-delay: 0ms; }
+.land-card:nth-child(2)  { animation-delay: 60ms; }
+.land-card:nth-child(3)  { animation-delay: 120ms; }
+.land-card:nth-child(4)  { animation-delay: 180ms; }
+.land-card:nth-child(5)  { animation-delay: 240ms; }
+.land-card:nth-child(6)  { animation-delay: 300ms; }
+.land-card:nth-child(7)  { animation-delay: 360ms; }
+.land-card:nth-child(8)  { animation-delay: 420ms; }
+.land-card:nth-child(9)  { animation-delay: 480ms; }
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Hovered card: lift + gold border glow ───────────────────────── */
+.land-card:hover {
+  transform: scale(1.015);
+  z-index: 10;
+  box-shadow:
+    0 0 0 1.5px rgba(200, 169, 110, 0.7),
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 40px rgba(200, 169, 110, 0.12);
+}
+
+/* ── Full-bleed image ────────────────────────────────────────────── */
+.land-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;    /* show upper portion, less sky */
+  display: block;
+  transition:
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 420ms ease;
+  will-change: transform, filter;
+  filter: saturate(0.8) brightness(0.88);
+  transform: scale(1.0);          /* no pre-zoom — starts natural */
+}
+.land-card:hover .land-card-img {
+  transform: scale(1.04);         /* subtle pull — not aggressive */
+  filter: saturate(1.0) brightness(0.95);
+}
+
+/* ── Sepia-gold vignette — only on hover ─────────────────────────── */
+.land-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(60, 35, 5, 0.55) 100%
+  );
+  opacity: 0;
+  transition: opacity 450ms ease;
+  pointer-events: none;
+}
+.land-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Film-grain texture ──────────────────────────────────────────── */
+.land-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.35;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* ── Category badge ──────────────────────────────────────────────── */
+.card-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  padding: 3px 10px;
+  background: rgba(8, 6, 4, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(200, 169, 110, 0.3);
+  color: rgba(200, 169, 110, 0.9);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  line-height: 1;
+
+  /* Clip-path reveal on hover */
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 400ms cubic-bezier(0.76, 0, 0.24, 1) 100ms;
+}
+.land-card:hover .card-badge {
+  clip-path: inset(0 0% 0 0);
+}
+
+/* ── Save button ─────────────────────────────────────────────────── */
+.card-save-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 169, 110, 0.3);
+  background: rgba(8, 6, 4, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8) translateY(-4px);
+  transition:
+    opacity 300ms ease 80ms,
+    transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1) 80ms,
+    background 200ms ease;
+}
+.land-card:hover .card-save-btn {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+.card-save-btn:hover {
+  background: rgba(200, 169, 110, 0.2);
+  border-color: rgba(200, 169, 110, 0.6);
+}
+
+/* ── Permanent resting title strip (always visible) ─────────────── */
+.card-resting {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  padding: 32px 14px 12px;
+  background: linear-gradient(
+    to top,
+    rgba(4, 3, 2, 0.82) 0%,
+    rgba(4, 3, 2, 0.4) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+  transition: opacity 350ms ease;
+}
+/* Hide resting strip when hover overlay takes over */
+.land-card:hover .card-resting {
+  opacity: 0;
+}
+
+.card-resting-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+  font-weight: 600;
+  font-style: italic;
+  color: rgba(240, 237, 232, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.7);
+}
+
+.card-resting-price {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(200, 169, 110, 0.75);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Bottom overlay (hover reveal) ──────────────────────────────── */
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  padding: 60px 16px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(4, 3, 2, 0.95) 0%,
+    rgba(4, 3, 2, 0.7) 45%,
+    transparent 100%
+  );
+  transform: translateY(8px);
+  opacity: 0;
+  transition:
+    transform 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 350ms ease;
+}
+.land-card:hover .card-overlay {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ── Title ───────────────────────────────────────────────────────── */
+.card-overlay-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  font-weight: 600;
+  font-style: italic;
+  color: #F0EDE8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+
+  /* Wipe-in from left */
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 500ms cubic-bezier(0.76, 0, 0.24, 1) 80ms;
+}
+.land-card:hover .card-overlay-title {
+  clip-path: inset(0 0% 0 0);
+}
+
+/* ── Meta row ────────────────────────────────────────────────────── */
+.card-overlay-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 350ms ease 180ms,
+    transform 350ms ease 180ms;
+}
+.land-card:hover .card-overlay-meta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-overlay-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(200, 169, 110, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  letter-spacing: 0.03em;
+}
+.card-overlay-location svg {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* ── Price ───────────────────────────────────────────────────────── */
+.card-overlay-price {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #E5C158;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Status ──────────────────────────────────────────────────────── */
+.card-overlay-status {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
+/* ── Gold rule above title ───────────────────────────────────────── */
+.card-overlay::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(200, 169, 110, 0.8), transparent);
+  margin-bottom: 10px;
+  transition: width 500ms cubic-bezier(0.76, 0, 0.24, 1) 50ms;
+}
+.land-card:hover .card-overlay::before {
+  width: 100%;
+}
+
+/* ── Dashboard action buttons ────────────────────────────────────── */
+.card-overlay-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.card-action-btn {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(200, 169, 110, 0.4);
+  background: rgba(200, 169, 110, 0.1);
+  color: rgba(200, 169, 110, 0.9);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 200ms ease;
+  border-radius: 0;
+}
+.card-action-btn:hover {
+  background: rgba(200, 169, 110, 0.25);
+  color: #E5C158;
+}
+.card-action-btn.danger {
+  border-color: rgba(229, 57, 53, 0.5);
+  background: rgba(229, 57, 53, 0.1);
+  color: rgba(229, 57, 53, 0.85);
+}
+.card-action-btn.danger:hover {
+  background: rgba(229, 57, 53, 0.25);
+  color: #EF5350;
+}
+
+/* ── Featured ring ───────────────────────────────────────────────── */
+.land-card.featured {
+  box-shadow: inset 0 0 0 2px rgba(200, 169, 110, 0.5);
+}
+.land-card.featured .card-badge {
+  border-color: rgba(200, 169, 110, 0.6);
+  color: #E5C158;
+}
+
+/* ── No results ──────────────────────────────────────────────────── */
+.no-res {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--text-muted);
+  padding: 60px 0;
+}
+
+/* ── Legacy btn classes (dashboards) ─────────────────────────────── */
+.btn-outline {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+.btn-outline:hover {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+.btn-danger {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 0;
+  border: 1px solid #e53935;
+  background: transparent;
+  color: #e53935;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-danger:hover {
+  background: #e53935;
+  color: #fff;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .lands-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .lands-grid { grid-template-columns: repeat(2, 1fr); gap: 2px; }
+  .land-card { aspect-ratio: 3 / 2; }
+}
+@media (max-width: 400px) {
+  .lands-grid { grid-template-columns: 1fr; }
+  .land-card { aspect-ratio: 16 / 9; }
+}
+
+/* ── Fallback for browsers without :has() ────────────────────────── */
+@supports not selector(:has(*)) {
+  .land-card:hover {
+    transform: scale(1.015);
+    z-index: 10;
+    box-shadow:
+      0 0 0 1.5px rgba(200, 169, 110, 0.7),
+      0 20px 60px rgba(0, 0, 0, 0.7);
+  }
+}

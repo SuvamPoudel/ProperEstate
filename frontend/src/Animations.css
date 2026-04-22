@@ -1,0 +1,116 @@
+/* ========================================
+   ANIMATIONS — DISABLED FOR STABILITY
+   Minimal animations only
+======================================== */
+
+/* Disable all crazy animations */
+body,
+* {
+  cursor: auto !important; /* Re-enable normal cursor */
+}
+
+/* Remove custom cursor */
+.aesthetic-cursor,
+.aesthetic-cursor-ring {
+  display: none !important;
+}
+
+/* Remove page loader */
+.page-loader {
+  display: none !important;
+}
+
+/* Remove page curtain */
+.page-curtain {
+  display: none !important;
+}
+
+/* Disable all scroll reveal animations */
+.fade-in,
+.fade-in-left,
+.fade-in-right,
+.scale-in,
+.blur-reveal,
+.stagger-item {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Disable hero animations */
+.split-text-inner {
+  transform: none !important;
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+/* Disable stat counter animations */
+.stat-number,
+.hero-stats {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Disable card animations */
+.card-animated {
+  transition: none !important;
+}
+
+.card-animated:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep only simple hover for images */
+.card-animated .card-image img,
+.card-animated .land-image img {
+  transition: transform 0.3s ease;
+}
+
+.card-animated:hover .card-image img,
+.card-animated:hover .land-image img {
+  transform: scale(1.02);
+}
+
+/* Disable all other animations */
+.floating,
+.gradient-animated,
+.shimmer,
+.morph-shape,
+.tilt-card,
+.btn-magnetic,
+.slide-reveal,
+.footer-reveal {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Remove noise overlay */
+.noise-overlay {
+  display: none !important;
+}
+
+/* Remove scroll progress */
+.scroll-progress {
+  display: none !important;
+}
+
+/* Remove marquee */
+.marquee-wrap {
+  display: none !important;
+}
+
+/* Simple button hover only */
+.btn-animated {
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-animated:hover {
+  transform: translateY(-1px);
+}
+
+.btn-animated::before,
+.btn-animated::after {
+  display: none !important;
+}

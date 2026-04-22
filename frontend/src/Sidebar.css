@@ -1,0 +1,590 @@
+/* ===================================================================
+   SIDEBAR — GTA-Cinematic / Editorial Luxury
+   Toggle: full-panel wipe with scanline reveal, not a basic slide
+   Typography: Cormorant Garamond editorial, Inter utility
+   =================================================================== */
+
+/* ── Overlay ─────────────────────────────────────────────────────── */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  visibility: hidden;
+  transition:
+    background 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1998;
+}
+.sidebar-overlay.open {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  visibility: visible;
+}
+
+/* ── Panel shell ─────────────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 100%;
+  background: #080B14;
+  border-right: 1px solid rgba(200, 169, 110, 0.12);
+  z-index: 1999;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  /* GTA-style: clip-path wipe from top-left corner */
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  transition: clip-path 550ms cubic-bezier(0.76, 0, 0.24, 1);
+  box-shadow: 4px 0 60px rgba(0, 0, 0, 0.8), 1px 0 0 rgba(200, 169, 110, 0.08);
+}
+.sidebar.open {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* ── Scanline texture overlay (cinematic grain) ──────────────────── */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── Accent glow strip (left edge) ──────────────────────────────── */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(200, 169, 110, 0.6) 30%,
+    rgba(229, 193, 88, 0.9) 50%,
+    rgba(200, 169, 110, 0.6) 70%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 400ms ease 300ms;
+  z-index: 1;
+}
+.sidebar.open::after {
+  opacity: 1;
+}
+
+/* ── Inner scroll container ──────────────────────────────────────── */
+.sidebar-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Scrollbar */
+.sidebar-inner::-webkit-scrollbar { width: 3px; }
+.sidebar-inner::-webkit-scrollbar-track { background: transparent; }
+.sidebar-inner::-webkit-scrollbar-thumb {
+  background: rgba(200, 169, 110, 0.25);
+  border-radius: 2px;
+}
+
+/* ── Header block — video bg zone ───────────────────────────────── */
+.sidebar-header {
+  position: relative;
+  flex-shrink: 0;
+  height: 200px;          /* fixed height for the video zone */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;  /* push logo to bottom of the video zone */
+  padding: 0 28px 20px 28px;
+
+  /* Reveal: slides down from above */
+  opacity: 0;
+  transition: opacity 400ms ease 200ms;
+}
+.sidebar.open .sidebar-header {
+  opacity: 1;
+}
+
+/* ── Video inside header ─────────────────────────────────────────── */
+.sidebar-header-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  opacity: 0.55;
+  filter: saturate(0.7) brightness(0.65);
+  pointer-events: none;
+}
+
+/* Dark gradient so text stays readable over video */
+.sidebar-header-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 11, 20, 0.25) 0%,
+    rgba(8, 11, 20, 0.1) 35%,
+    rgba(8, 11, 20, 0.7) 75%,
+    rgba(8, 11, 20, 0.96) 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Logo ────────────────────────────────────────────────────────── */
+.sidebar-logo {
+  position: relative;
+  z-index: 10;
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.75rem, 5vw, 2.2rem);
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin: 0 0 8px 0;
+  color: #F0EDE8;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9), 0 2px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* ── Description under logo ─────────────────────────────────────── */
+.sidebar-tagline {
+  position: relative;
+  z-index: 10;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  color: rgba(240, 237, 232, 0.65);
+  margin: 0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
+  max-width: 220px;
+}
+
+/* ── Divider ─────────────────────────────────────────────────────── */
+.sidebar-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(200, 169, 110, 0.5) 0%,
+    rgba(200, 169, 110, 0.08) 100%
+  );
+  margin: 0;
+  flex-shrink: 0;
+
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 500ms cubic-bezier(0.76, 0, 0.24, 1) 350ms;
+}
+.sidebar.open .sidebar-divider {
+  transform: scaleX(1);
+}
+
+/* ── Section label ───────────────────────────────────────────────── */
+.sidebar-section-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(200, 169, 110, 0.35);
+  padding: 20px 28px 8px 28px;
+  flex-shrink: 0;
+
+  opacity: 0;
+  transform: translateX(-10px);
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+}
+.sidebar.open .sidebar-section-label {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: 420ms;
+}
+
+/* ── Nav list ────────────────────────────────────────────────────── */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 16px 8px 16px;
+  flex-shrink: 0;
+}
+
+/* ── Individual link ─────────────────────────────────────────────── */
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(240, 237, 232, 0.5);
+  cursor: pointer;
+  border-radius: 6px;
+  text-decoration: none;
+  overflow: hidden;
+  transition:
+    color 250ms ease,
+    background 250ms ease,
+    transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Stagger entrance */
+  opacity: 0;
+  transform: translateX(-24px) skewX(2deg);
+}
+
+/* Hover fill sweep */
+.sidebar-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(200, 169, 110, 0.1) 0%,
+    rgba(200, 169, 110, 0.04) 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 300ms cubic-bezier(0.76, 0, 0.24, 1);
+  border-radius: 6px;
+}
+
+/* Left accent bar */
+.sidebar-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 2px;
+  background: var(--accent, #C8A96E);
+  border-radius: 0 2px 2px 0;
+  transform: scaleY(0);
+  transition: transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar-link:hover {
+  color: rgba(240, 237, 232, 0.95);
+  transform: translateX(4px);
+}
+.sidebar-link:hover::before {
+  transform: translateX(0);
+}
+.sidebar-link:hover::after {
+  transform: scaleY(1);
+}
+
+.sidebar-link.active {
+  color: #E5C158;
+  background: rgba(200, 169, 110, 0.1);
+}
+.sidebar-link.active::after {
+  transform: scaleY(1);
+  background: #E5C158;
+}
+
+/* ── Icon wrapper ────────────────────────────────────────────────── */
+.sidebar-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  transition:
+    background 250ms ease,
+    border-color 250ms ease,
+    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sidebar-link:hover .sidebar-link-icon {
+  background: rgba(200, 169, 110, 0.15);
+  border-color: rgba(200, 169, 110, 0.3);
+  transform: scale(1.08) rotate(-3deg);
+}
+.sidebar-link.active .sidebar-link-icon {
+  background: rgba(200, 169, 110, 0.18);
+  border-color: rgba(200, 169, 110, 0.4);
+}
+
+/* ── Link label ──────────────────────────────────────────────────── */
+.sidebar-link-label {
+  flex: 1;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* ── Arrow indicator ─────────────────────────────────────────────── */
+.sidebar-link-arrow {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 200ms ease,
+    transform 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: rgba(200, 169, 110, 0.7);
+  font-size: 0.7rem;
+}
+.sidebar-link:hover .sidebar-link-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── Staggered entrance animation ────────────────────────────────── */
+.sidebar.open .sidebar-link {
+  animation: sidebarLinkReveal 480ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Main nav items */
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(1)  { animation-delay: 180ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(2)  { animation-delay: 220ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(3)  { animation-delay: 260ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(4)  { animation-delay: 300ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(5)  { animation-delay: 340ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(6)  { animation-delay: 380ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(7)  { animation-delay: 420ms; }
+.sidebar.open .sidebar-nav .sidebar-link:nth-child(8)  { animation-delay: 460ms; }
+
+/* Footer nav items */
+.sidebar.open .sidebar-footer-nav .sidebar-link:nth-child(1) { animation-delay: 480ms; }
+.sidebar.open .sidebar-footer-nav .sidebar-link:nth-child(2) { animation-delay: 520ms; }
+
+@keyframes sidebarLinkReveal {
+  from {
+    opacity: 0;
+    transform: translateX(-24px) skewX(2deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) skewX(0deg);
+  }
+}
+
+/* ── Admin link variant ──────────────────────────────────────────── */
+.sidebar-link.admin-link {
+  background: linear-gradient(
+    135deg,
+    rgba(200, 169, 110, 0.12) 0%,
+    rgba(229, 193, 88, 0.06) 100%
+  );
+  border: 1px solid rgba(200, 169, 110, 0.18);
+  color: #E5C158;
+}
+.sidebar-link.admin-link::after {
+  transform: scaleY(1);
+  background: #E5C158;
+}
+.sidebar-link.admin-link:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(200, 169, 110, 0.22) 0%,
+    rgba(229, 193, 88, 0.12) 100%
+  );
+  border-color: rgba(200, 169, 110, 0.35);
+}
+
+/* ── Spacer ──────────────────────────────────────────────────────── */
+.sidebar-spacer {
+  flex: 1;
+  min-height: 16px;
+}
+
+/* ── Footer nav ──────────────────────────────────────────────────── */
+.sidebar-footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 16px 12px 16px;
+  flex-shrink: 0;
+}
+
+/* ── Footer divider ──────────────────────────────────────────────── */
+.sidebar-footer-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 16px;
+  flex-shrink: 0;
+
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 400ms ease 500ms;
+}
+.sidebar.open .sidebar-footer-divider {
+  transform: scaleX(1);
+}
+
+/* ── Logout link ─────────────────────────────────────────────────── */
+.sidebar-link.logout {
+  color: rgba(239, 83, 80, 0.65);
+}
+.sidebar-link.logout .sidebar-link-icon {
+  background: rgba(229, 57, 53, 0.08);
+  border-color: rgba(229, 57, 53, 0.15);
+}
+.sidebar-link.logout::before {
+  background: linear-gradient(
+    90deg,
+    rgba(229, 57, 53, 0.1) 0%,
+    rgba(229, 57, 53, 0.04) 100%
+  );
+}
+.sidebar-link.logout::after {
+  background: #E53935;
+}
+.sidebar-link.logout:hover {
+  color: #EF5350;
+}
+.sidebar-link.logout:hover .sidebar-link-icon {
+  background: rgba(229, 57, 53, 0.15);
+  border-color: rgba(229, 57, 53, 0.3);
+}
+
+/* ── Bottom brand strip ──────────────────────────────────────────── */
+.sidebar-brand-strip {
+  padding: 16px 28px 24px 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  opacity: 0;
+  transition: opacity 400ms ease 600ms;
+}
+.sidebar.open .sidebar-brand-strip {
+  opacity: 1;
+}
+
+.sidebar-brand-strip-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(200, 169, 110, 0.2);
+}
+
+.sidebar-brand-strip-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(200, 169, 110, 0.25);
+}
+
+/* ── Hamburger → X morph ─────────────────────────────────────────── */
+.menu-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 150ms ease;
+  flex-shrink: 0;
+}
+.menu-icon:hover {
+  background: var(--bg-secondary);
+}
+
+.hamburger-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 18px;
+}
+.hamburger-line {
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 2px;
+  transform-origin: center;
+  transition:
+    transform 350ms cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 200ms ease,
+    width 300ms ease;
+}
+/* Open state: morph to X */
+.menu-icon.sidebar-open .hamburger-line:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+.menu-icon.sidebar-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.menu-icon.sidebar-open .hamburger-line:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    max-width: 320px;
+  }
+}
+
+/* ================================================================
+   LIGHT MODE SIDEBAR OVERRIDES
+   Sidebar stays dark (it's a cinematic panel) but softens slightly
+   ================================================================ */
+[data-theme="light"] .sidebar {
+  background: #1A1C24;
+  border-right-color: rgba(160, 120, 64, 0.15);
+}
+
+[data-theme="light"] .sidebar-link {
+  color: rgba(240, 237, 232, 0.45);
+}
+[data-theme="light"] .sidebar-link:hover {
+  color: rgba(240, 237, 232, 0.92);
+}
+[data-theme="light"] .sidebar-link.active {
+  color: #E5C158;
+}
+
+[data-theme="light"] .sidebar-section-label {
+  color: rgba(200, 169, 110, 0.4);
+}
+
+[data-theme="light"] .sidebar-footer-divider {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .sidebar-brand-strip-text {
+  color: rgba(200, 169, 110, 0.25);
+}
+
+[data-theme="light"] .sidebar-overlay.open {
+  background: rgba(0, 0, 0, 0.55);
+}

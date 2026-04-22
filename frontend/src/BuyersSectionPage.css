@@ -1,0 +1,450 @@
+/* ===================================================================
+   BUYERS SECTION — Social feed, editorial dark, retro-minimal
+   =================================================================== */
+
+.bs-page {
+  background: var(--bg-primary);
+  min-height: 100vh;
+  padding-top: 64px;
+}
+
+/* ── Page header ─────────────────────────────────────────────────── */
+.bs-hero {
+  padding: 32px 0 24px;
+  border-bottom: 1px solid var(--border);
+}
+.bs-hero-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.bs-hero h1 {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.bs-hero p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+  letter-spacing: 0.04em;
+}
+.bs-post-btn {
+  height: 30px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid rgba(0,212,255,0.3);
+  color: rgba(0,212,255,0.8);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 180ms ease;
+  border-radius: 0;
+}
+.bs-post-btn:hover {
+  background: rgba(0,212,255,0.08);
+  border-color: rgba(0,212,255,0.6);
+}
+
+/* ── Body ────────────────────────────────────────────────────────── */
+.bs-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+
+/* ── Post form card ──────────────────────────────────────────────── */
+.bs-form-card {
+  background: rgba(12,16,28,0.9);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-left: 2px solid rgba(0,212,255,0.3);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(8px);
+}
+.bs-form-card h3 {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(0,212,255,0.7);
+  margin: 0 0 14px;
+}
+.bs-form { display: flex; flex-direction: column; gap: 0; }
+.bs-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.bs-field { display: flex; flex-direction: column; gap: 4px; }
+.bs-field.full { grid-column: 1 / -1; }
+.bs-field label {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.52rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(0,212,255,0.45);
+}
+.bs-field input,
+.bs-field select,
+.bs-field textarea {
+  padding: 0 10px;
+  height: 30px;
+  background: rgba(0,212,255,0.03);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 0;
+  color: var(--text-primary);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 180ms ease;
+  letter-spacing: 0.03em;
+}
+.bs-field input:focus,
+.bs-field select:focus,
+.bs-field textarea:focus {
+  border-color: rgba(0,212,255,0.35);
+}
+.bs-field textarea {
+  height: auto;
+  padding: 7px 10px;
+  resize: vertical;
+  min-height: 64px;
+}
+
+.category-selector,
+.subcategory-selector { display: flex; gap: 5px; flex-wrap: wrap; }
+.cat-btn,
+.subcat-btn {
+  height: 26px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 0;
+  color: var(--text-muted);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.cat-btn:hover, .subcat-btn:hover { border-color: rgba(0,212,255,0.35); color: rgba(0,212,255,0.8); }
+.cat-btn.selected, .subcat-btn.selected {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.4);
+  color: rgba(0,212,255,0.9);
+}
+
+/* ── Feed ────────────────────────────────────────────────────────── */
+.bs-feed { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Post card ───────────────────────────────────────────────────── */
+.bs-post-card {
+  background: rgba(12,16,28,0.88);
+  border: 1px solid rgba(0,212,255,0.08);
+  border-left: 2px solid rgba(0,212,255,0.15);
+  padding: 14px 16px;
+  transition: border-color 180ms ease;
+  backdrop-filter: blur(6px);
+}
+.bs-post-card:hover { border-color: rgba(0,212,255,0.2); border-left-color: rgba(0,212,255,0.4); }
+
+.bs-post-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.bs-post-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(0,212,255,0.8);
+  flex-shrink: 0;
+}
+.bs-post-meta { flex: 1; }
+.bs-post-author {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+  letter-spacing: 0.04em;
+}
+.bs-post-time {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  display: block;
+  letter-spacing: 0.03em;
+}
+.bs-post-type-badge {
+  padding: 2px 7px;
+  background: rgba(0,212,255,0.06);
+  border: 1px solid rgba(0,212,255,0.18);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: rgba(0,212,255,0.75);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bs-post-title {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 5px;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+}
+.bs-post-desc {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 8px;
+  letter-spacing: 0.02em;
+}
+.bs-post-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.bs-tag {
+  padding: 2px 7px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.08);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Contact buttons */
+.bs-post-contact { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.bs-contact-btn {
+  height: 24px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-decoration: none;
+  border-radius: 0;
+  border: 1px solid;
+  background: transparent;
+}
+.bs-contact-btn.phone { border-color: rgba(76,175,80,0.3); color: rgba(76,175,80,0.8); }
+.bs-contact-btn.phone:hover { background: rgba(76,175,80,0.08); }
+.bs-contact-btn.email { border-color: rgba(33,150,243,0.3); color: rgba(33,150,243,0.8); }
+.bs-contact-btn.email:hover { background: rgba(33,150,243,0.08); }
+.bs-contact-btn.msg { border-color: rgba(0,212,255,0.25); color: rgba(0,212,255,0.7); }
+.bs-contact-btn.msg:hover { background: rgba(0,212,255,0.06); }
+
+/* ── Comments ────────────────────────────────────────────────────── */
+.bs-comments {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0,212,255,0.06);
+}
+.bs-comments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.bs-comments-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+.bs-show-more {
+  background: transparent;
+  border: none;
+  color: rgba(0,212,255,0.55);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: color 150ms ease;
+  padding: 0;
+}
+.bs-show-more:hover { color: rgba(0,212,255,0.85); }
+
+.bs-comment {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.bs-comment-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: rgba(0,212,255,0.7);
+  flex-shrink: 0;
+}
+.bs-comment-body { flex: 1; }
+.bs-comment-author {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: block;
+  letter-spacing: 0.04em;
+}
+.bs-comment-text {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: block;
+  margin-top: 1px;
+  letter-spacing: 0.02em;
+}
+.bs-comment-time {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+
+.bs-comment-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 7px;
+  align-items: center;
+}
+.bs-comment-input-wrap { flex: 1; position: relative; }
+.bs-comment-input {
+  width: 100%;
+  height: 28px;
+  padding: 0 30px 0 10px;
+  background: rgba(0,212,255,0.03);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 0;
+  color: var(--text-primary);
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 150ms ease;
+  box-sizing: border-box;
+  letter-spacing: 0.02em;
+}
+.bs-comment-input:focus { border-color: rgba(0,212,255,0.35); }
+.bs-comment-input::placeholder { color: rgba(255,255,255,0.18); }
+.bs-comment-send {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,212,255,0.1);
+  border: none;
+  color: rgba(0,212,255,0.8);
+  cursor: pointer;
+  transition: background 150ms ease;
+  border-radius: 0;
+}
+.bs-comment-send:hover:not(:disabled) { background: rgba(0,212,255,0.2); }
+.bs-comment-send:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Empty / loading */
+.rp-empty {
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed rgba(0,212,255,0.1);
+}
+.rp-empty svg { margin-bottom: 10px; }
+.rp-empty h3 {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 4px;
+}
+.rp-empty p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+.rp-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 10px;
+  color: var(--text-muted);
+}
+.rp-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(0,212,255,0.1);
+  border-top-color: rgba(0,212,255,0.6);
+  border-radius: 50%;
+  animation: bs-spin 0.7s linear infinite;
+}
+@keyframes bs-spin { to { transform: rotate(360deg); } }
+.rp-loading p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .bs-hero-inner, .bs-body { padding: 0 14px; }
+  .bs-hero { padding: 24px 0 18px; }
+  .bs-body { padding: 14px 14px 40px; }
+  .bs-form-grid { grid-template-columns: 1fr; }
+}

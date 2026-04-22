@@ -1,0 +1,147 @@
+/* ===================================================================
+   DASHBOARD PAGES — Listed Assets · Wishlist · Rental Requests
+   Cyberpunk minimal · Rajdhani
+   =================================================================== */
+
+@keyframes dashGridPulse {
+  0%, 100% { opacity: 0.04; }
+  50%       { opacity: 0.08; }
+}
+
+/* Shared page wrapper */
+.dashboard-page-wrapper {
+  position: relative;
+}
+.dashboard-page-wrapper::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: dashGridPulse 4s ease-in-out infinite;
+}
+
+/* Page title override for dashboard */
+.dashboard-page-wrapper .page-title {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+}
+.dashboard-page-wrapper .page-title::after {
+  background: rgba(0,212,255,0.45);
+  width: 36px;
+  height: 1px;
+}
+
+/* Empty state */
+.dashboard-page-wrapper .container > p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  padding: 20px 0;
+}
+
+/* ── Rental requests list ────────────────────────────────────────── */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(12,16,28,0.85);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-left: 2px solid rgba(0,212,255,0.2);
+  transition: border-color 180ms ease;
+  backdrop-filter: blur(8px);
+  border-radius: 0;
+}
+.user-row:hover {
+  border-color: rgba(0,212,255,0.25);
+  border-left-color: rgba(0,212,255,0.5);
+  transform: none;
+  box-shadow: none;
+}
+.user-row p {
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 2px 0;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+}
+.user-row p strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* Status badges */
+.user-row [style*="orange"] {
+  color: rgba(255,170,0,0.9) !important;
+  font-family: 'Rajdhani', var(--font-sans);
+  letter-spacing: 0.1em;
+}
+.user-row [style*="green"] {
+  color: rgba(0,255,136,0.85) !important;
+  font-family: 'Rajdhani', var(--font-sans);
+  letter-spacing: 0.1em;
+}
+.user-row [style*="red"] {
+  color: rgba(255,68,68,0.85) !important;
+  font-family: 'Rajdhani', var(--font-sans);
+  letter-spacing: 0.1em;
+}
+
+/* Action buttons in rental requests */
+.user-row .btn-primary {
+  background: transparent;
+  color: rgba(0,212,255,0.85);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 0;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  height: 28px;
+  padding: 0 12px;
+  transition: all 180ms ease;
+}
+.user-row .btn-primary:hover {
+  border-color: rgba(0,212,255,0.6);
+  color: rgba(0,212,255,1);
+  transform: none;
+  box-shadow: none;
+}
+.user-row .btn-danger-sm {
+  background: transparent;
+  color: rgba(255,68,68,0.8);
+  border: 1px solid rgba(255,68,68,0.25);
+  border-radius: 0;
+  font-family: 'Rajdhani', var(--font-sans);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  height: 28px;
+  padding: 0 12px;
+  transition: all 180ms ease;
+}
+.user-row .btn-danger-sm:hover {
+  border-color: rgba(255,68,68,0.5);
+  color: rgba(255,68,68,1);
+}
