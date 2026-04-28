@@ -15,7 +15,7 @@ const Avatar = ({ name, avatar, size = 38 }) => {
   );
 };
 
-export default function ChatApp({ user, initialOther = null }) {
+export default function ChatApp({ user, initialOther = null, openRef = null }) {
   const [conversations, setConversations] = useState([]);
   const [activeOther, setActiveOther] = useState(initialOther);
   const [messages, setMessages] = useState([]);
@@ -28,6 +28,26 @@ export default function ChatApp({ user, initialOther = null }) {
   const pollRef = useRef(null);
   const bottomRef = useRef();
   const inputRef = useRef();
+
+  // Expose open/toggle to parent via ref
+  useEffect(() => {
+    if (openRef) {
+      openRef.current = {
+        toggle: () => {
+          setOpen(o => {
+            if (!o) { setView("list"); fetchConversations(); }
+            return !o;
+          });
+        },
+        open: () => {
+          setOpen(true);
+          setView("list");
+          fetchConversations();
+        },
+        getUnread: () => unread,
+      };
+    }
+  });
 
   const fetchConversations = useCallback(async () => {
     if (!user?._id) return;
@@ -151,14 +171,6 @@ export default function ChatApp({ user, initialOther = null }) {
   return (
     <>
       <style>{CHAT_STYLES}</style>
-
-      {/* FAB */}
-      <button className="cfab" onClick={() => { setOpen(o => !o); if (!open) { setView("list"); fetchConversations(); } }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        {unread > 0 && <span className="cfab-badge">{unread > 9 ? "9+" : unread}</span>}
-      </button>
 
       {open && (
         <div className="cwindow">
@@ -365,8 +377,8 @@ const CHAT_STYLES = `
 /* ===== CHAT WINDOW ===== */
 .cwindow {
   position: fixed;
-  bottom: 96px;
-  right: 28px;
+  top: 80px;
+  right: 16px;
   width: 360px;
   height: 520px;
   background: #fff;
@@ -376,11 +388,11 @@ const CHAT_STYLES = `
   flex-direction: column;
   overflow: hidden;
   z-index: 1400;
-  animation: cSlideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  animation: cSlideDown 0.25s cubic-bezier(0.34,1.56,0.64,1);
   border: 1px solid rgba(0,0,0,0.06);
 }
-@keyframes cSlideUp {
-  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+@keyframes cSlideDown {
+  from { opacity: 0; transform: translateY(-16px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -649,6 +661,6 @@ const CHAT_STYLES = `
 .csend-btn:disabled { cursor: not-allowed; }
 
 @media (max-width: 480px) {
-  .cwindow { width: calc(100vw - 20px); right: 10px; bottom: 80px; height: 70vh; }
+  .cwindow { width: calc(100vw - 20px); right: 10px; top: 70px; height: 70vh; }
 }
 `;

@@ -601,7 +601,7 @@ const SearchBar = ({ onSearch }) => {
               <img src={s.image ? "http://localhost:5000/uploads/" + s.image : "https://via.placeholder.com/40"} className="sug-thumb" alt="" />
               <div className="sug-info">
                 <span className="sug-title">{s.title}</span>
-                <span className="sug-loc">{[s.city, s.district].filter(Boolean).join(", ") || s.location} - {s.category}</span>
+                <span className="sug-loc">{[s.city, s.district].filter(Boolean).join(", ") || s.location} - {s.subCategory || s.category}</span>
               </div>
               <span className="sug-price">Rs. {parseInt(s.price).toLocaleString()}</span>
             </div>
@@ -620,7 +620,7 @@ const LandCard = ({ land, user, toggleSave, showActions = false, onDelete }) => 
     <div className="land-card">
       <div className="land-image" onClick={() => navigate("/land/" + land._id)}>
         <img src={land.image ? "http://localhost:5000/uploads/" + land.image : "https://via.placeholder.com/400"} alt="land" />
-        <div className="card-badge">{land.category || "Plot"}</div>
+        <div className="card-badge">{land.subCategory || land.category || "Property"}</div>
       </div>
       <div className="land-info">
         <h3>{land.title}</h3>
@@ -629,8 +629,16 @@ const LandCard = ({ land, user, toggleSave, showActions = false, onDelete }) => 
         {user?._id === land.ownerId && (<p style={{ fontSize: "0.8rem", color: land.status === "approved" ? "green" : "orange" }}>Status: {land.status?.toUpperCase()}</p>)}
         <div style={{ display: "flex", gap: "10px", marginTop: "15px", alignItems: "center" }}>
           <button className="btn-outline" onClick={() => navigate("/land/" + land._id)}>Details</button>
-          {toggleSave && !showActions && (<button className="save-btn" onClick={(e) => { e.stopPropagation(); toggleSave(land._id); }}>{isSaved ? "&#10084;" : "&#9825;"}</button>)}
-          {showActions && user?._id === land.ownerId && (<button className="btn-outline" onClick={() => navigate("/edit-land/" + land._id)}>&#9998; Edit</button>)}
+          {toggleSave && !showActions && (
+            <button className="save-btn" onClick={(e) => { e.stopPropagation(); toggleSave(land._id); }} title={isSaved ? "Remove from Wishlist" : "Add to Wishlist"}>
+              {isSaved ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#e53935" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              )}
+            </button>
+          )}
+          {showActions && user?._id === land.ownerId && (<button className="btn-outline" onClick={() => navigate("/edit-land/" + land._id)}>✏ Edit</button>)}
           {showActions && (<button className="btn-danger" onClick={() => onDelete(land._id)}>Delete</button>)}
         </div>
       </div>
@@ -642,38 +650,96 @@ const LandCard = ({ land, user, toggleSave, showActions = false, onDelete }) => 
 const FilterBar = ({ onFilter, refreshList }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState({ minPrice: 0, maxPrice: 200000, location: "", category: "" });
+  const wrapRef = useRef(null);
   const handleChange = (e) => {
     const { name, value } = e.target;
     const newFilters = { ...filters, [name]: value };
     setFilters(newFilters); onFilter(newFilters);
   };
+  const activeCount = [filters.location, filters.category, filters.minPrice > 0, filters.maxPrice < 200000].filter(Boolean).length;
+  useEffect(() => {
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setIsOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
   return (
-    <div className="filter-wrapper">
-      <button className="btn-outline filter-toggle-btn" onClick={() => setIsOpen(!isOpen)}>&#9881; Filters {isOpen ? "&#9652;" : "&#9662;"}</button>
+    <div className="filter-wrapper" ref={wrapRef}>
+      <button className={"filter-toggle-btn" + (isOpen ? " active" : "")} onClick={() => setIsOpen(!isOpen)}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filters
+        {activeCount > 0 && <span className="filter-active-dot">{activeCount}</span>}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
       {isOpen && (
         <div className="filter-dropdown-content">
-          <div className="filter-group"><label>Location</label><input name="location" placeholder="e.g. Kathmandu" value={filters.location} onChange={handleChange} /></div>
-          <div className="filter-group"><label>Type</label>
-            <select name="category" value={filters.category} onChange={handleChange}>
-              <option value="">All Types</option>
-              <option value="Residential">Residential</option>
-              <option value="Commercial">Commercial</option>
-              <option value="Agricultural">Agricultural</option>
-            </select>
-          </div>
-          <div className="filter-group price-slider-group"><label>Min Rent/mo</label>
-            <div className="price-input-row">
-              <input type="number" name="minPrice" min="0" value={filters.minPrice} onChange={handleChange} className="num-input" />
-              <input type="range" name="minPrice" min="0" max="200000" step="1000" value={filters.minPrice} onChange={handleChange} className="slider" />
+          <div className="filter-row">
+            <div className="filter-item">
+              <label>Location</label>
+              <input name="location" placeholder="e.g. Kathmandu" value={filters.location} onChange={handleChange} />
+            </div>
+            <div className="filter-item">
+              <label>Property Type</label>
+              <select name="category" value={filters.category} onChange={handleChange}>
+                <option value="">All Types</option>
+                <optgroup label="Land">
+                  <option value="Agricultural Land">Agricultural Land</option>
+                  <option value="Residential Land">Residential Land</option>
+                  <option value="Commercial Land">Commercial Land</option>
+                </optgroup>
+                <optgroup label="House">
+                  <option value="Apartment">Apartment / Flat</option>
+                  <option value="House">House / Villa</option>
+                  <option value="Bungalow">Bungalow</option>
+                </optgroup>
+                <optgroup label="Room">
+                  <option value="Room - Living">Room (Living)</option>
+                  <option value="Room - Office">Room (Office)</option>
+                  <option value="Room - Storage">Room (Storage)</option>
+                </optgroup>
+                <optgroup label="Commercial">
+                  <option value="Shop">Shop / Showroom</option>
+                  <option value="Office Space">Office Space</option>
+                  <option value="Warehouse">Warehouse</option>
+                </optgroup>
+              </select>
             </div>
           </div>
-          <div className="filter-group price-slider-group"><label>Max Rent/mo</label>
-            <div className="price-input-row">
-              <input type="number" name="maxPrice" min="0" value={filters.maxPrice} onChange={handleChange} className="num-input" />
-              <input type="range" name="maxPrice" min="0" max="200000" step="1000" value={filters.maxPrice} onChange={handleChange} className="slider" />
+          <div className="filter-row">
+            <div className="filter-item">
+              <label>Min Rent/mo <span className="filter-val">Rs. {parseInt(filters.minPrice).toLocaleString()}</span></label>
+              <input
+                type="number"
+                name="minPrice"
+                min="0"
+                max="200000"
+                step="500"
+                value={filters.minPrice}
+                onChange={handleChange}
+                className="filter-num-input"
+                placeholder="0"
+              />
+              <input type="range" name="minPrice" min="0" max="200000" step="1000" value={filters.minPrice} onChange={handleChange} className="filter-slider" />
+            </div>
+            <div className="filter-item">
+              <label>Max Rent/mo <span className="filter-val">Rs. {parseInt(filters.maxPrice).toLocaleString()}</span></label>
+              <input
+                type="number"
+                name="maxPrice"
+                min="0"
+                max="200000"
+                step="500"
+                value={filters.maxPrice}
+                onChange={handleChange}
+                className="filter-num-input"
+                placeholder="200000"
+              />
+              <input type="range" name="maxPrice" min="0" max="200000" step="1000" value={filters.maxPrice} onChange={handleChange} className="filter-slider" />
             </div>
           </div>
-          <button className="btn-refresh" onClick={refreshList}>&#128260; Refresh</button>
+          <div className="filter-actions">
+            <button className="filter-reset-btn" onClick={() => { const reset = { minPrice: 0, maxPrice: 200000, location: "", category: "" }; setFilters(reset); onFilter(reset); }}>Reset</button>
+            <button className="filter-refresh-btn" onClick={() => { refreshList(); setIsOpen(false); }}>Apply & Refresh</button>
+          </div>
         </div>
       )}
     </div>
@@ -691,22 +757,140 @@ const NEPAL_LOCATIONS = {
   "Karnali": ["Surkhet", "Dailekh", "Jajarkot", "Dolpa", "Humla", "Jumla", "Kalikot", "Mugu", "Rukum West", "Salyan"],
 };
 
+/* ===== PROPERTY CATEGORY STRUCTURE ===== */
+const PROPERTY_CATEGORIES = {
+  "Land": {
+    icon: "🌿",
+    subCategories: ["Agricultural Land", "Residential Land", "Commercial Land"]
+  },
+  "House": {
+    icon: "🏠",
+    subCategories: ["Apartment / Flat", "House / Villa", "Bungalow", "Townhouse"]
+  },
+  "Room": {
+    icon: "🚪",
+    subCategories: ["Room - Living", "Room - Office", "Room - Storage"]
+  },
+  "Commercial": {
+    icon: "🏢",
+    subCategories: ["Shop / Showroom", "Office Space", "Warehouse", "Restaurant Space"]
+  }
+};
+
 /* ===== LAND FORM ===== */
 const LandForm = ({ initialData = {}, onSubmit, submitLabel = "Submit Listing" }) => {
   const [province, setProvince] = useState(initialData.province || "");
   const [district, setDistrict] = useState(initialData.district || "");
+  const [mainCategory, setMainCategory] = useState(initialData.mainCategory || "");
+  const [subCategory, setSubCategory] = useState(initialData.subCategory || initialData.category || "");
   const districts = province ? NEPAL_LOCATIONS[province] || [] : [];
+  const subCats = mainCategory ? PROPERTY_CATEGORIES[mainCategory]?.subCategories || [] : [];
+
   return (
     <form onSubmit={onSubmit} encType="multipart/form-data">
       <div className="form-grid">
         <input name="title" placeholder="Property Title" required defaultValue={initialData.title || ""} />
         <input name="price" type="number" placeholder="Monthly Rent (Rs.)" required defaultValue={initialData.price || ""} />
-        <input name="areaSize" placeholder="Area Size (e.g. 5 aana)" required defaultValue={initialData.areaSize || ""} />
-        <select name="category" required defaultValue={initialData.category || "Residential"}>
-          <option value="Residential">Residential</option>
-          <option value="Commercial">Commercial</option>
-          <option value="Agricultural">Agricultural</option>
-        </select>
+        <input name="areaSize" placeholder="Area Size (e.g. 5 aana, 200 sqft)" required defaultValue={initialData.areaSize || ""} />
+
+        {/* Category Selection */}
+        <div className="form-full">
+          <label style={{ fontSize: "0.8rem", color: "#666", display: "block", marginBottom: "6px" }}>Property Category</label>
+          <div className="category-selector">
+            {Object.entries(PROPERTY_CATEGORIES).map(([cat, info]) => (
+              <button
+                key={cat}
+                type="button"
+                className={"cat-btn" + (mainCategory === cat ? " selected" : "")}
+                onClick={() => { setMainCategory(cat); setSubCategory(""); }}
+              >
+                <span>{info.icon}</span> {cat}
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="mainCategory" value={mainCategory} />
+        </div>
+
+        {mainCategory && (
+          <div className="form-full">
+            <label style={{ fontSize: "0.8rem", color: "#666", display: "block", marginBottom: "6px" }}>Sub-Category</label>
+            <div className="subcategory-selector">
+              {subCats.map(sc => (
+                <button
+                  key={sc}
+                  type="button"
+                  className={"subcat-btn" + (subCategory === sc ? " selected" : "")}
+                  onClick={() => setSubCategory(sc)}
+                >
+                  {sc}
+                </button>
+              ))}
+            </div>
+            <input type="hidden" name="subCategory" value={subCategory} />
+            <input type="hidden" name="category" value={mainCategory} />
+            {!subCategory && <p style={{ fontSize: "0.78rem", color: "#e53935", marginTop: "4px" }}>Please select a sub-category</p>}
+          </div>
+        )}
+
+        {/* Land-specific fields */}
+        {mainCategory === "Land" && (
+          <>
+            <div className="form-full">
+              <label style={{ fontSize: "0.8rem", color: "#666", display: "block", marginBottom: "4px" }}>Land Use / Zoning</label>
+              <select name="landUse" defaultValue={initialData.landUse || ""}>
+                <option value="">Select Land Use</option>
+                <option value="Farming">Farming / Cultivation</option>
+                <option value="Orchard">Orchard / Garden</option>
+                <option value="Pasture">Pasture / Grazing</option>
+                <option value="Residential Plot">Residential Plot</option>
+                <option value="Commercial Plot">Commercial Plot</option>
+                <option value="Industrial">Industrial Zone</option>
+              </select>
+            </div>
+            <input name="roadAccess" placeholder="Road Access (e.g. 20ft black top)" defaultValue={initialData.roadAccess || ""} />
+            <input name="waterSource" placeholder="Water Source (e.g. municipal, well)" defaultValue={initialData.waterSource || ""} />
+          </>
+        )}
+
+        {/* House-specific fields */}
+        {mainCategory === "House" && (
+          <>
+            <input name="bedrooms" type="number" placeholder="Number of Bedrooms" min="0" defaultValue={initialData.bedrooms || ""} />
+            <input name="bathrooms" type="number" placeholder="Number of Bathrooms" min="0" defaultValue={initialData.bathrooms || ""} />
+            <select name="furnishing" defaultValue={initialData.furnishing || ""}>
+              <option value="">Furnishing Status</option>
+              <option value="Unfurnished">Unfurnished</option>
+              <option value="Semi-Furnished">Semi-Furnished</option>
+              <option value="Fully Furnished">Fully Furnished</option>
+            </select>
+            <select name="floor" defaultValue={initialData.floor || ""}>
+              <option value="">Floor</option>
+              <option value="Ground">Ground Floor</option>
+              <option value="1st">1st Floor</option>
+              <option value="2nd">2nd Floor</option>
+              <option value="3rd">3rd Floor</option>
+              <option value="4th+">4th Floor or Above</option>
+            </select>
+          </>
+        )}
+
+        {/* Room-specific fields */}
+        {mainCategory === "Room" && (
+          <>
+            <select name="furnishing" defaultValue={initialData.furnishing || ""}>
+              <option value="">Furnishing Status</option>
+              <option value="Unfurnished">Unfurnished</option>
+              <option value="Semi-Furnished">Semi-Furnished</option>
+              <option value="Fully Furnished">Fully Furnished</option>
+            </select>
+            <select name="attachedBathroom" defaultValue={initialData.attachedBathroom || ""}>
+              <option value="">Bathroom</option>
+              <option value="Attached">Attached Bathroom</option>
+              <option value="Shared">Shared Bathroom</option>
+            </select>
+          </>
+        )}
+
         <select name="province" required value={province} onChange={e => { setProvince(e.target.value); setDistrict(""); }}>
           <option value="">Select Province</option>
           {Object.keys(NEPAL_LOCATIONS).map(p => <option key={p} value={p}>{p}</option>)}
@@ -733,12 +917,12 @@ const LandForm = ({ initialData = {}, onSubmit, submitLabel = "Submit Listing" }
         </div>
         {!initialData._id && (
           <div style={{ flex: 1 }}>
-            <label style={{ display: "block", color: "red", fontWeight: "bold" }}>Lalpurja Document (Admin Only)</label>
+            <label style={{ display: "block", color: "red", fontWeight: "bold" }}>Lalpurja / Ownership Document (Admin Only)</label>
             <input type="file" name="lalpurja" required />
           </div>
         )}
       </div>
-      <button className="btn-primary full-width" style={{ marginTop: "20px" }} type="submit">{submitLabel}</button>
+      <button className="btn-primary full-width" style={{ marginTop: "20px" }} type="submit" disabled={mainCategory && !subCategory}>{submitLabel}</button>
     </form>
   );
 };
@@ -836,7 +1020,11 @@ const LandDetailsPage = ({ user, toggleSave, onChatWith }) => {
                 <button className="btn-secondary full-width" onClick={() => onChatWith(owner)}>&#128172; Chat with Owner</button>
               )}
               <button className="btn-secondary full-width" onClick={() => toggleSave(land._id)}>
-                {user?.savedLands?.includes(land._id) ? "&#10084; Remove from Wishlist" : "&#9825; Add to Wishlist"}
+                {user?.savedLands?.includes(land._id) ? (
+                  <><svg width="16" height="16" viewBox="0 0 24 24" fill="#e53935" stroke="#e53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle",marginRight:6}}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Remove from Wishlist</>
+                ) : (
+                  <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle",marginRight:6}}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>Add to Wishlist</>
+                )}
               </button>
             </div>
           </div>
@@ -927,6 +1115,124 @@ const BecomeSellerSection = ({ user, setUser }) => {
         </div>
         <button className="btn-primary full-width" type="submit" disabled={loading}>{loading ? "Uploading..." : "Submit for Verification"}</button>
       </form>
+    </div>
+  );
+};
+
+/* ===== SIGNUP PAGE WITH SELLER OPTION ===== */
+const SignupPage = ({ setUser }) => {
+  const navigate = useNavigate();
+  const [wantSeller, setWantSeller] = useState(false);
+  const [docType, setDocType] = useState("citizenship");
+  const [docFile, setDocFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState("form"); // form | pending
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    const name = e.target.name.value.trim();
+    const email = e.target.email.value.trim();
+    const phone = e.target.phone.value.trim();
+    const password = e.target.password.value;
+
+    if (!name || !email || !phone || !password) { alert("All fields are required."); return; }
+    if (!/^[0-9]{10}$/.test(phone)) { alert("Phone must be exactly 10 digits."); return; }
+    if (wantSeller && !docFile) { alert("Please upload your ID document to register as a seller."); return; }
+
+    setLoading(true);
+    try {
+      if (wantSeller) {
+        // Seller registration: first create user, then upload doc
+        const signupRes = await fetch("http://localhost:5000/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, phone, password })
+        });
+        const signupData = await signupRes.json();
+        if (!signupData.success) { alert(signupData.message || "Signup failed"); setLoading(false); return; }
+
+        // Upload seller doc
+        const fd = new FormData();
+        fd.append("userId", signupData.user._id);
+        fd.append("sellerDocType", docType);
+        fd.append("sellerDoc", docFile);
+        const sellerRes = await fetch("http://localhost:5000/become-seller", { method: "POST", body: fd });
+        const sellerData = await sellerRes.json();
+        if (sellerData.success) {
+          setStep("pending");
+        } else {
+          alert("Account created but seller doc upload failed. Please go to Profile to retry.");
+          setUser(signupData.user);
+          localStorage.setItem("properEstateUser", JSON.stringify(signupData.user));
+          navigate("/profile");
+        }
+      } else {
+        const res = await fetch("http://localhost:5000/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, phone, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setUser(data.user);
+          localStorage.setItem("properEstateUser", JSON.stringify(data.user));
+          navigate(data.user.role === "admin" ? "/admin" : "/");
+        } else alert(data.message || "Signup failed");
+      }
+    } catch (err) { alert("Network error. Please try again."); }
+    setLoading(false);
+  };
+
+  if (step === "pending") return (
+    <div className="auth-container" style={{ textAlign: "center" }}>
+      <div style={{ fontSize: 52, marginBottom: 12 }}>⏳</div>
+      <h2 style={{ color: "#1a3c34" }}>Account Created!</h2>
+      <p style={{ color: "#666", marginBottom: 8 }}>Your seller verification is <strong>pending admin review</strong>.</p>
+      <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: 24 }}>You can log in now. Seller features will be unlocked once your ID is approved (24–48 hrs).</p>
+      <button className="btn-primary full-width" onClick={() => navigate("/login")}>Go to Login</button>
+    </div>
+  );
+
+  return (
+    <div className="auth-container" style={{ maxWidth: 460 }}>
+      <h2>Create Account</h2>
+      <form onSubmit={handleSignup}>
+        <input name="name" placeholder="Full Name" required />
+        <input name="email" type="email" placeholder="Email Address" required />
+        <input name="phone" placeholder="Phone Number (10 digits)" maxLength={10} required />
+        <input name="password" type="password" placeholder="Password" required />
+
+        {/* Seller toggle */}
+        <div className="signup-seller-toggle" onClick={() => setWantSeller(v => !v)}>
+          <div className={"toggle-switch" + (wantSeller ? " on" : "")}>
+            <div className="toggle-knob"></div>
+          </div>
+          <div>
+            <span className="toggle-label">Register as Seller</span>
+            <p className="toggle-hint">List properties for rent. Requires ID verification.</p>
+          </div>
+        </div>
+
+        {wantSeller && (
+          <div className="seller-doc-box">
+            <p className="seller-doc-note">📋 Upload a valid government ID. Your account will be reviewed by admin before seller features are activated.</p>
+            <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#555", display: "block", marginBottom: 6 }}>Document Type</label>
+            <select value={docType} onChange={e => setDocType(e.target.value)} style={{ marginBottom: 10 }}>
+              <option value="citizenship">Citizenship Certificate</option>
+              <option value="nid">National ID (NID)</option>
+              <option value="passport">Passport</option>
+            </select>
+            <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "#555", display: "block", marginBottom: 6 }}>Upload Document Photo / Scan</label>
+            <input type="file" accept="image/*,.pdf" onChange={e => setDocFile(e.target.files[0])} required={wantSeller} />
+            {docFile && <p style={{ fontSize: "0.78rem", color: "#43a047", marginTop: 4 }}>✓ {docFile.name}</p>}
+          </div>
+        )}
+
+        <button className="btn-primary full-width" type="submit" disabled={loading} style={{ marginTop: 8 }}>
+          {loading ? "Creating Account..." : wantSeller ? "Register & Submit for Verification" : "Create Account"}
+        </button>
+      </form>
+      <p onClick={() => navigate("/login")} className="auth-link">Already have an account? Login</p>
     </div>
   );
 };
@@ -1114,7 +1420,209 @@ const ProfilePage = ({ user, setUser }) => {
   );
 };
 
-/* ===== MAIN APP ===== */
+/* ===== TOAST NOTIFICATION ===== */
+const Toast = ({ msg, type, onClose }) => {
+  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
+  return (
+    <div className={"toast-notif toast-" + (type || "info")}>
+      <span>{msg}</span>
+      <button onClick={onClose} className="toast-close">✕</button>
+    </div>
+  );
+};
+
+/* ===== RENTAL PARTNER PAGE ===== */
+const RentalPartnerPage = ({ user }) => {
+  const navigate = useNavigate();
+  const [step, setStep] = useState("form"); // form | payment | success
+  const [showPayment, setShowPayment] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    phone: "",
+    email: user?.email || "",
+    location: "",
+    budget: "",
+    propertyType: "",
+    subCategory: "",
+    preferredGender: "",
+    preferredAge: "",
+    moveInDate: "",
+    description: "",
+  });
+  const [errors, setErrors] = useState({});
+
+  const PARTNER_CATEGORIES = {
+    "Land": ["Agricultural Land", "Residential Land", "Commercial Land"],
+    "House": ["Apartment / Flat", "House / Villa", "Bungalow"],
+    "Room": ["Room - Living", "Room - Office", "Room - Storage"],
+  };
+
+  const subCats = formData.propertyType ? PARTNER_CATEGORIES[formData.propertyType] || [] : [];
+
+  const validate = () => {
+    const e = {};
+    if (!formData.name.trim()) e.name = "Name is required";
+    if (!formData.phone || !/^[0-9]{10}$/.test(formData.phone)) e.phone = "Valid 10-digit phone required";
+    if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) e.email = "Valid email required";
+    if (!formData.location.trim()) e.location = "Location is required";
+    if (!formData.budget) e.budget = "Budget is required";
+    if (!formData.propertyType) e.propertyType = "Property type is required";
+    if (!formData.subCategory) e.subCategory = "Sub-category is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setShowPayment(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    setShowPayment(false);
+    try {
+      await fetch("http://localhost:5000/rental-partner", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, userId: user?._id })
+      });
+    } catch (err) { console.error(err); }
+    setStep("success");
+  };
+
+  if (step === "success") return (
+    <div className="container" style={{ maxWidth: 560, textAlign: "center", paddingTop: 60 }}>
+      <div style={{ fontSize: 64, marginBottom: 16 }}>🤝</div>
+      <h2 style={{ color: "#1a3c34", marginBottom: 8 }}>Partner Request Submitted!</h2>
+      <p style={{ color: "#666", marginBottom: 24 }}>Your rental partner listing is now live. Interested people will contact you directly.</p>
+      <button className="btn-primary" onClick={() => navigate("/")}>Back to Home</button>
+    </div>
+  );
+
+  return (
+    <div className="container" style={{ maxWidth: 680 }}>
+      {showPayment && (
+        <DummyEsewaPayment
+          amount={200}
+          description="Rental Partner Listing Fee - ProperEstate"
+          onSuccess={handlePaymentSuccess}
+          onCancel={() => setShowPayment(false)}
+        />
+      )}
+      <div className="rp-header">
+        <h2>🤝 Find a Rental Partner</h2>
+        <p>Looking for someone to share rent? Post your details and find the perfect partner. <strong>Rs. 200 listing fee</strong> via eSewa.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="rp-form">
+        <div className="rp-section">
+          <h4>Your Details</h4>
+          <div className="rp-grid">
+            <div className="rp-field">
+              <label>Full Name *</label>
+              <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Your full name" />
+              {errors.name && <span className="rp-error">{errors.name}</span>}
+            </div>
+            <div className="rp-field">
+              <label>Phone Number *</label>
+              <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value.replace(/\D/g,"").slice(0,10)})} placeholder="10-digit phone" maxLength={10} />
+              {errors.phone && <span className="rp-error">{errors.phone}</span>}
+            </div>
+            <div className="rp-field">
+              <label>Email *</label>
+              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="your@email.com" />
+              {errors.email && <span className="rp-error">{errors.email}</span>}
+            </div>
+            <div className="rp-field">
+              <label>Preferred Location *</label>
+              <input value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="e.g. Kathmandu, Lalitpur" />
+              {errors.location && <span className="rp-error">{errors.location}</span>}
+            </div>
+          </div>
+        </div>
+
+        <div className="rp-section">
+          <h4>What You're Looking For</h4>
+          <div className="rp-field">
+            <label>Property Type *</label>
+            <div className="category-selector">
+              {Object.keys(PARTNER_CATEGORIES).map(cat => (
+                <button key={cat} type="button"
+                  className={"cat-btn" + (formData.propertyType === cat ? " selected" : "")}
+                  onClick={() => setFormData({...formData, propertyType: cat, subCategory: ""})}>
+                  {cat === "Land" ? "🌿" : cat === "House" ? "🏠" : "🚪"} {cat}
+                </button>
+              ))}
+            </div>
+            {errors.propertyType && <span className="rp-error">{errors.propertyType}</span>}
+          </div>
+
+          {formData.propertyType && (
+            <div className="rp-field">
+              <label>Sub-Category *</label>
+              <div className="subcategory-selector">
+                {subCats.map(sc => (
+                  <button key={sc} type="button"
+                    className={"subcat-btn" + (formData.subCategory === sc ? " selected" : "")}
+                    onClick={() => setFormData({...formData, subCategory: sc})}>
+                    {sc}
+                  </button>
+                ))}
+              </div>
+              {errors.subCategory && <span className="rp-error">{errors.subCategory}</span>}
+            </div>
+          )}
+
+          <div className="rp-grid">
+            <div className="rp-field">
+              <label>Monthly Budget (Rs.) *</label>
+              <input type="number" value={formData.budget} onChange={e => setFormData({...formData, budget: e.target.value})} placeholder="e.g. 8000" min="0" />
+              {errors.budget && <span className="rp-error">{errors.budget}</span>}
+            </div>
+            <div className="rp-field">
+              <label>Move-in Date (Optional)</label>
+              <input type="date" value={formData.moveInDate} onChange={e => setFormData({...formData, moveInDate: e.target.value})} />
+            </div>
+          </div>
+        </div>
+
+        <div className="rp-section">
+          <h4>Partner Preferences <span style={{fontWeight:400,color:"#aaa",fontSize:"0.8rem"}}>(Optional)</span></h4>
+          <div className="rp-grid">
+            <div className="rp-field">
+              <label>Preferred Partner Gender</label>
+              <select value={formData.preferredGender} onChange={e => setFormData({...formData, preferredGender: e.target.value})}>
+                <option value="">No Preference</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Any">Any</option>
+              </select>
+            </div>
+            <div className="rp-field">
+              <label>Preferred Partner Age Range</label>
+              <select value={formData.preferredAge} onChange={e => setFormData({...formData, preferredAge: e.target.value})}>
+                <option value="">No Preference</option>
+                <option value="18-25">18–25</option>
+                <option value="25-35">25–35</option>
+                <option value="35-50">35–50</option>
+                <option value="50+">50+</option>
+              </select>
+            </div>
+          </div>
+          <div className="rp-field">
+            <label>Additional Details</label>
+            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={3} placeholder="Any other preferences, lifestyle, occupation, etc." style={{width:"100%",resize:"vertical"}} />
+          </div>
+        </div>
+
+        <div className="rp-submit-area">
+          <p className="rp-fee-note">💳 A listing fee of <strong>Rs. 200</strong> will be charged via eSewa to publish your partner request.</p>
+          <button type="submit" className="btn-primary full-width" style={{marginTop:12}}>Post Partner Request — Pay Rs. 200</button>
+        </div>
+      </form>
+    </div>
+  );
+};
 function App() {
   const [lands, setLands] = useState([]);
   const [filteredLands, setFilteredLands] = useState([]);
@@ -1126,6 +1634,8 @@ function App() {
   const [cachedAddFormData, setCachedAddFormData] = useState(null);
   const [chatTarget, setChatTarget] = useState(null);
   const [bookingCount, setBookingCount] = useState(0);
+  const [toast, setToast] = useState(null);
+  const chatRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -1182,7 +1692,7 @@ function App() {
     if (filters.location) temp = temp.filter(l => (l.location || "").toLowerCase().includes(filters.location.toLowerCase()) || (l.city || "").toLowerCase().includes(filters.location.toLowerCase()) || (l.district || "").toLowerCase().includes(filters.location.toLowerCase()));
     if (filters.minPrice) temp = temp.filter(l => l.price >= parseInt(filters.minPrice));
     if (filters.maxPrice) temp = temp.filter(l => l.price <= parseInt(filters.maxPrice));
-    if (filters.category) temp = temp.filter(l => l.category === filters.category);
+    if (filters.category) temp = temp.filter(l => l.subCategory === filters.category || l.category === filters.category || l.mainCategory === filters.category);
     setFilteredLands(temp);
   };
 
@@ -1201,7 +1711,7 @@ function App() {
     e.preventDefault();
     if (!user) return navigate("/login");
     if (user.accountType && user.accountType !== "seller" && user.role !== "admin") {
-      alert("You need a verified Seller account to list properties.\n\nGo to Profile > Become a Seller to apply.");
+      setToast({ msg: "You need a verified Seller account to list properties. Go to Profile → Become a Seller to apply.", type: "warn" });
       return;
     }
     const fd = new FormData(e.target);
@@ -1218,17 +1728,19 @@ function App() {
   return (
     <div className="app-root">
       {showAddPayment && (<DummyEsewaPayment amount={1000} description={"ProperEstate Platform Commission (Listing Fee)"} onSuccess={completeAddLand} onCancel={() => setShowAddPayment(false)} />)}
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       <SmartSuggestor />
-      {user && <ChatApp user={user} initialOther={chatTarget} />}
+      {user && <ChatApp user={user} initialOther={chatTarget} openRef={chatRef} />}
 
       <div className={"sidebar-overlay " + (sidebarOpen ? "open" : "")} onClick={() => setSidebarOpen(false)}></div>
       <div className={"sidebar " + (sidebarOpen ? "open" : "")}>
         <h2 className="sidebar-logo">ProperEstate</h2>
-        <div className="sidebar-link" onClick={() => { navigate("/"); setSidebarOpen(false); }}>&#127968; Home Explore</div>
-        {user?.role === "admin" && <div className="sidebar-link admin-link" onClick={() => { navigate("/admin"); setSidebarOpen(false); }}>&#128737; Admin Panel</div>}
-        <div className="sidebar-link" onClick={() => { navigate("/profile"); setSidebarOpen(false); }}>&#128100; My Profile</div>
-        <div className="sidebar-link" onClick={() => { navigate("/add-land"); setSidebarOpen(false); }}>&#43; List Property</div>
-        <div className="sidebar-link" onClick={() => { navigate("/help"); setSidebarOpen(false); }}>&#10067; Help Center</div>
+        <div className="sidebar-link" onClick={() => { navigate("/"); setSidebarOpen(false); }}>🏘 Home Explore</div>
+        {user?.role === "admin" && <div className="sidebar-link admin-link" onClick={() => { navigate("/admin"); setSidebarOpen(false); }}>🛡 Admin Panel</div>}
+        <div className="sidebar-link" onClick={() => { navigate("/profile"); setSidebarOpen(false); }}>👤 My Profile</div>
+        <div className="sidebar-link" onClick={() => { navigate("/add-land"); setSidebarOpen(false); }}>＋ List Property</div>
+        <div className="sidebar-link" onClick={() => { navigate("/rental-partner"); setSidebarOpen(false); }}>🤝 Rental Partner</div>
+        <div className="sidebar-link" onClick={() => { navigate("/help"); setSidebarOpen(false); }}>❓ Help Center</div>
         {user && <div className="sidebar-link logout" onClick={handleLogout}>Logout</div>}
       </div>
 
@@ -1242,8 +1754,9 @@ function App() {
           <div className="nav-right">
             {user && (
               <>
-                <button className="nav-chat-btn" onClick={() => { /* open chat */ document.querySelector('.chat-fab')?.click(); }} title="Messages">
+                <button className="nav-chat-btn" onClick={() => chatRef.current?.toggle()} title="Messages">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  {bookingCount > 0 && <span className="nav-requests-badge" style={{top:2,right:2}}>{bookingCount > 9 ? "9+" : bookingCount}</span>}
                 </button>
                 <button className="nav-requests-btn" onClick={() => navigate("/dashboard/requests")} title="Rental Requests">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -1297,17 +1810,10 @@ function App() {
               <p onClick={() => navigate("/signup")} className="auth-link">Create an account</p>
             </div>
           } />
-          <Route path="/signup" element={
-            <div className="auth-container"><h2>Sign Up</h2>
-              <form onSubmit={(e) => handleAuth(e, "signup")}>
-                <input name="name" placeholder="Name" /><input name="email" placeholder="Email" /><input name="password" type="password" placeholder="Password" />
-                <button className="btn-primary full-width">Register</button>
-              </form>
-              <p onClick={() => navigate("/login")} className="auth-link">Have an account?</p>
-            </div>
-          } />
+          <Route path="/signup" element={<SignupPage setUser={setUser} />} />
           <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} />} />
           <Route path="/help" element={<HelpCenter />} />
+          <Route path="/rental-partner" element={user ? <RentalPartnerPage user={user} /> : <Navigate to="/login" />} />
           <Route path="/dashboard/listed" element={
             <div className="container"><h2 className="page-title">My Listed Assets</h2>
               <div className="lands-grid">

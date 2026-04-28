@@ -1,4 +1,4 @@
-const dns = require("node:dns");
+﻿const dns = require("node:dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 require("dotenv").config();
@@ -70,7 +70,19 @@ const landSchema = new mongoose.Schema({
   image: String,
   lalpurjaImage: String,
   description: String,
-  category: String,
+  category: String,        // main category: Land | House | Room | Commercial
+  subCategory: String,     // e.g. Agricultural Land, Apartment, Room - Living
+  mainCategory: String,
+  // Land-specific
+  landUse: String,
+  roadAccess: String,
+  waterSource: String,
+  // House/Room-specific
+  bedrooms: Number,
+  bathrooms: Number,
+  furnishing: String,
+  floor: String,
+  attachedBathroom: String,
   areaSize: String,
   mapUrl: String,
   ownerName: String,
@@ -354,8 +366,9 @@ app.get("/search-live", async (req, res) => {
         { district: { $regex: q, $options: "i" } },
         { province: { $regex: q, $options: "i" } },
         { category: { $regex: q, $options: "i" } },
+        { subCategory: { $regex: q, $options: "i" } },
       ]
-    }).limit(8).select("title location city district province category price image");
+    }).limit(8).select("title location city district province category subCategory price image");
     res.json({ success: true, results });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -566,6 +579,44 @@ app.post("/help-center", async (req, res) => {
   }
 });
 
+/* ===================================================== 🤝 RENTAL PARTNER ===================================================== */
+const rentalPartnerSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  name: { type: String, required: true },
+  phone: { type: String, required: true },
+  email: { type: String, required: true },
+  location: { type: String, required: true },
+  budget: { type: Number, required: true },
+  propertyType: { type: String, required: true },
+  subCategory: { type: String, required: true },
+  preferredGender: { type: String, default: "" },
+  preferredAge: { type: String, default: "" },
+  moveInDate: { type: String, default: "" },
+  description: { type: String, default: "" },
+  paymentStatus: { type: String, default: "paid" },
+  createdAt: { type: Date, default: Date.now },
+});
+const RentalPartner = mongoose.model("RentalPartner", rentalPartnerSchema);
+
+app.post("/rental-partner", async (req, res) => {
+  try {
+    const partner = new RentalPartner(req.body);
+    await partner.save();
+    res.json({ success: true, partner });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get("/rental-partners", async (req, res) => {
+  try {
+    const partners = await RentalPartner.find().sort({ createdAt: -1 });
+    res.json({ success: true, partners });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.listen(5000, () => {
-  console.log("ðŸš€ Server running on http://localhost:5000");
+  console.log("🚀 Server running on http://localhost:5000");
 });
