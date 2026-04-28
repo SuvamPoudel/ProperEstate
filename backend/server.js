@@ -610,7 +610,9 @@ app.post("/rental-partner", async (req, res) => {
 
 app.get("/rental-partners", async (req, res) => {
   try {
-    const partners = await RentalPartner.find().sort({ createdAt: -1 });
+    const partners = await RentalPartner.find()
+      .populate("userId", "name avatar _id")
+      .sort({ createdAt: -1 });
     res.json({ success: true, partners });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

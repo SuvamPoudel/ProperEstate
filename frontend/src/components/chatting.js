@@ -44,6 +44,13 @@ export default function ChatApp({ user, initialOther = null, openRef = null }) {
           setView("list");
           fetchConversations();
         },
+        // Open directly into a specific conversation
+        openWith: (otherUser) => {
+          setActiveOther(otherUser);
+          setView("chat");
+          setMessages([]);
+          setOpen(true);
+        },
         getUnread: () => unread,
       };
     }

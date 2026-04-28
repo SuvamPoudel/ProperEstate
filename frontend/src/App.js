@@ -1438,11 +1438,14 @@ const PARTNER_CATEGORIES = {
   "Room":  { icon: "🚪", subs: ["Room - Living", "Room - Office", "Room - Storage"] },
 };
 
-const PartnerCard = ({ p }) => {
+const PartnerCard = ({ p, onChat, currentUserId }) => {
   const typeIcon = PARTNER_CATEGORIES[p.propertyType]?.icon || "🏘";
   const initials = (p.name || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
   const budgetFmt = p.budget ? `Rs. ${parseInt(p.budget).toLocaleString()}/mo` : "—";
   const dateStr = p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+  // The poster's user object (populated from backend)
+  const posterUser = p.userId && typeof p.userId === "object" ? p.userId : null;
+  const isOwn = posterUser?._id && currentUserId && posterUser._id.toString() === currentUserId.toString();
   return (
     <div className="pcard">
       <div className="pcard-top">
@@ -1484,12 +1487,18 @@ const PartnerCard = ({ p }) => {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
           Email
         </a>
+        {onChat && posterUser && !isOwn && (
+          <button className="pcard-contact-btn msg" onClick={() => onChat(posterUser)}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Message
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-const RentalPartnerPage = ({ user }) => {
+const RentalPartnerPage = ({ user, chatRef }) => {
   const navigate = useNavigate();
   const [tab, setTab] = useState("browse");
   const [partners, setPartners] = useState([]);
@@ -1532,6 +1541,20 @@ const RentalPartnerPage = ({ user }) => {
     const typeMatch = !searchType || p.propertyType === searchType;
     return locMatch && typeMatch;
   });
+
+  // Open the chat window with the partner poster
+  const handleChat = (posterUser) => {
+    if (!user) return;
+    if (chatRef?.current?.open) {
+      chatRef.current.open();
+    }
+    // Small delay so the window opens first, then navigate to that conversation
+    setTimeout(() => {
+      if (chatRef?.current?.openWith) {
+        chatRef.current.openWith(posterUser);
+      }
+    }, 100);
+  };
 
   const validate = () => {
     const e = {};
@@ -1652,7 +1675,7 @@ const RentalPartnerPage = ({ user }) => {
               </div>
             ) : (
               <div className="pcard-grid">
-                {filtered.map((p, i) => <PartnerCard key={p._id || i} p={p} />)}
+                {filtered.map((p, i) => <PartnerCard key={p._id || i} p={p} onChat={user ? handleChat : null} currentUserId={user?._id} />)}
               </div>
             )}
           </div>
@@ -1981,7 +2004,7 @@ function App() {
           <Route path="/signup" element={<SignupPage setUser={setUser} />} />
           <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} />} />
           <Route path="/help" element={<HelpCenter />} />
-          <Route path="/rental-partner" element={user ? <RentalPartnerPage user={user} /> : <Navigate to="/login" />} />
+          <Route path="/rental-partner" element={user ? <RentalPartnerPage user={user} chatRef={chatRef} /> : <Navigate to="/login" />} />
           <Route path="/dashboard/listed" element={
             <div className="container"><h2 className="page-title">My Listed Assets</h2>
               <div className="lands-grid">

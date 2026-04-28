@@ -533,3 +533,7 @@ input:focus,textarea:focus,select:focus{background:#fff;border-color:var(--prima
 .rp-search-divider{display:none;}
 .pcard-grid{grid-template-columns:1fr;}
 }
+
+/* ===== PARTNER CARD MESSAGE BUTTON ===== */
+.pcard-contact-btn.msg{background:#f0f7f5;color:#1a3c34;border:1px solid #c5e1c5;}
+.pcard-contact-btn.msg:hover{background:#1a3c34;color:#fff;}
