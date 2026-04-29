@@ -935,6 +935,8 @@ const LandDetailsPage = ({ user, toggleSave, onChatWith }) => {
   const [owner, setOwner] = useState(null);
   const [rentDuration, setRentDuration] = useState("");
   const [rentMonths, setRentMonths] = useState(1);
+  const [negotiatePrice, setNegotiatePrice] = useState("");
+  const [showNegotiate, setShowNegotiate] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -951,7 +953,15 @@ const LandDetailsPage = ({ user, toggleSave, onChatWith }) => {
   const handleBookingRequest = async () => {
     if (!rentDuration) { alert("Please specify the rental duration."); return; }
     setShowPayment(false);
-    const body = { landId: land._id, buyerId: user._id, sellerId: land.ownerId, paymentAmount: 5000, rentDuration, rentDurationMonths: rentMonths };
+    const body = {
+      landId: land._id,
+      buyerId: user._id,
+      sellerId: land.ownerId,
+      paymentAmount: 5000,
+      rentDuration,
+      rentDurationMonths: rentMonths,
+      negotiatedPrice: negotiatePrice ? parseInt(negotiatePrice) : null,
+    };
     const res = await fetch("http://localhost:5000/book-land", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if ((await res.json()).success) alert("Booking Request Sent! The owner will be notified via email.");
   };
@@ -1013,6 +1023,39 @@ const LandDetailsPage = ({ user, toggleSave, onChatWith }) => {
                 </select>
               </div>
               {rentDuration && <p className="rent-dur-preview">Duration: {rentDuration}</p>}
+            </div>
+
+            {/* Negotiate Price */}
+            <div className="negotiate-box">
+              <button className="negotiate-toggle" onClick={() => setShowNegotiate(v => !v)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                {showNegotiate ? "Hide Negotiate" : "💬 Negotiate Price"}
+              </button>
+              {showNegotiate && (
+                <div className="negotiate-input-wrap">
+                  <p className="negotiate-hint">Listed at <strong>Rs. {parseInt(land.price).toLocaleString()}/mo</strong>. Propose your offer:</p>
+                  <div className="negotiate-row">
+                    <span className="negotiate-prefix">Rs.</span>
+                    <input
+                      type="number"
+                      className="negotiate-input"
+                      placeholder={land.price}
+                      value={negotiatePrice}
+                      min="1"
+                      onChange={e => setNegotiatePrice(e.target.value)}
+                    />
+                    <span className="negotiate-suffix">/mo</span>
+                  </div>
+                  {negotiatePrice && parseInt(negotiatePrice) !== land.price && (
+                    <p className="negotiate-diff" style={{ color: parseInt(negotiatePrice) < land.price ? "#15803d" : "#dc2626" }}>
+                      {parseInt(negotiatePrice) < land.price
+                        ? `↓ Rs. ${(land.price - parseInt(negotiatePrice)).toLocaleString()} less than listed`
+                        : `↑ Rs. ${(parseInt(negotiatePrice) - land.price).toLocaleString()} more than listed`}
+                    </p>
+                  )}
+                  <p className="negotiate-note">Your offer will be sent to the owner with your booking request.</p>
+                </div>
+              )}
             </div>
             <div className="action-row-vertical">
               <button className="btn-primary full-width" onClick={handleRequestClick}>&#128203; Request to Rent</button>
@@ -1431,6 +1474,504 @@ const Toast = ({ msg, type, onClose }) => {
   );
 };
 
+/* ===== PROPER AGENT PAGE ===== */
+const PA_API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
+const ProperAgentPage = ({ user }) => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [suggestedProps, setSuggestedProps] = useState([]);
+  const bottomRef = useRef();
+  const inputRef = useRef();
+  const navigate = useNavigate();
+
+  const QUICK = [
+    { icon: "🏠", label: "Find a flat in Kathmandu under Rs.20,000" },
+    { icon: "🌿", label: "Agricultural land in Chitwan" },
+    { icon: "💰", label: "What's the rent in Pokhara?" },
+    { icon: "🚪", label: "Help me find the right property" },
+    { icon: "🏢", label: "Office space in Lalitpur" },
+    { icon: "📋", label: "How do I list my property?" },
+  ];
+
+  useEffect(() => {
+    setMessages([{
+      role: "assistant",
+      content: "Namaste! 🙏 I'm **ProperAgent**, your personal Nepal real estate AI.\n\nI can **search live listings** from our database, suggest prices for any area, and guide you step-by-step to find the perfect property.\n\nWhat are you looking for today?",
+      id: Date.now()
+    }]);
+  }, []);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 100); }, []);
+
+  const fetchSuggestedProperties = async (query) => {
+    try {
+      const res = await fetch(`${PA_API}/search-live?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.success && data.results?.length > 0) {
+        setSuggestedProps(data.results.slice(0, 3));
+        return data.results.slice(0, 3);
+      }
+    } catch {}
+    return [];
+  };
+
+  const sendMessage = async (text) => {
+    const msg = (text || input).trim();
+    if (!msg || loading) return;
+    setInput("");
+    const userMsg = { role: "user", content: msg, id: Date.now() };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+    const newHistory = [...history, { role: "user", content: msg }];
+    setHistory(newHistory);
+
+    // Try to fetch live properties if message looks like a search
+    let liveProps = [];
+    const searchKeywords = /find|search|looking|want|need|show|list|available|rent|buy|kathmandu|pokhara|chitwan|lalitpur|bhaktapur|butwal|biratnagar/i;
+    if (searchKeywords.test(msg)) {
+      liveProps = await fetchSuggestedProperties(msg);
+    }
+
+    try {
+      const res = await fetch(`${PA_API}/ai-advisor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newHistory, liveProperties: liveProps })
+      });
+      const data = await res.json();
+      let reply = data.reply || "Sorry, I couldn't process that. Please try again.";
+      const assistantMsg = { role: "assistant", content: reply, id: Date.now() + 1, properties: liveProps.length > 0 ? liveProps : null };
+      setMessages(prev => [...prev, assistantMsg]);
+      setHistory(prev => [...prev, { role: "assistant", content: reply }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Connection error. Please try again.", id: Date.now() + 1 }]);
+    }
+    setLoading(false);
+  };
+
+  const handleReset = () => {
+    setMessages([{
+      role: "assistant",
+      content: "Namaste! 🙏 I'm **ProperAgent**, your personal Nepal real estate AI.\n\nI can **search live listings** from our database, suggest prices for any area, and guide you step-by-step to find the perfect property.\n\nWhat are you looking for today?",
+      id: Date.now()
+    }]);
+    setHistory([]);
+    setSuggestedProps([]);
+    setInput("");
+  };
+
+  const renderContent = (text) => {
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) return <strong key={i}>{part.slice(2, -2)}</strong>;
+      return <span key={i} style={{ whiteSpace: "pre-wrap" }}>{part}</span>;
+    });
+  };
+
+  const formatTime = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  return (
+    <div className="pa-page">
+      {/* Sidebar panel */}
+      <div className="pa-sidebar">
+        <div className="pa-sidebar-header">
+          <div className="pa-logo-wrap">
+            <div className="pa-logo-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <div className="pa-logo-name">ProperAgent</div>
+              <div className="pa-logo-sub">AI Real Estate Assistant</div>
+            </div>
+          </div>
+        </div>
+        <button className="pa-new-chat-btn" onClick={handleReset}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Conversation
+        </button>
+        <div className="pa-sidebar-section">
+          <p className="pa-sidebar-label">Quick Actions</p>
+          {QUICK.map((q, i) => (
+            <button key={i} className="pa-quick-item" onClick={() => sendMessage(q.label)}>
+              <span className="pa-quick-icon">{q.icon}</span>
+              <span>{q.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="pa-sidebar-footer">
+          <div className="pa-footer-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Live DB · Nepal 2025
+          </div>
+        </div>
+      </div>
+
+      {/* Main chat area */}
+      <div className="pa-main">
+        <div className="pa-chat-header">
+          <div className="pa-chat-title">
+            <div className="pa-online-dot"></div>
+            ProperAgent
+          </div>
+          <div className="pa-chat-sub">Searches live listings · Knows Nepal prices · Guides your search</div>
+        </div>
+
+        <div className="pa-messages">
+          {messages.map((msg, i) => (
+            <div key={msg.id || i} className={"pa-msg-row " + msg.role}>
+              {msg.role === "assistant" && (
+                <div className="pa-bot-avatar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+              )}
+              <div className="pa-msg-content">
+                <div className={"pa-bubble " + msg.role}>
+                  <div className="pa-bubble-text">{renderContent(msg.content)}</div>
+                  <div className="pa-bubble-time">{formatTime()}</div>
+                </div>
+                {/* Inline property cards */}
+                {msg.properties && msg.properties.length > 0 && (
+                  <div className="pa-prop-cards">
+                    <p className="pa-prop-label">📍 Live listings found:</p>
+                    {msg.properties.map(p => (
+                      <div key={p._id} className="pa-prop-card" onClick={() => navigate("/land/" + p._id)}>
+                        <img src={p.image ? `${PA_API}/uploads/${p.image}` : "https://via.placeholder.com/60"} alt={p.title} className="pa-prop-img" />
+                        <div className="pa-prop-info">
+                          <span className="pa-prop-title">{p.title}</span>
+                          <span className="pa-prop-loc">{[p.city, p.district].filter(Boolean).join(", ") || p.location}</span>
+                          <span className="pa-prop-price">Rs. {parseInt(p.price).toLocaleString()}/mo</span>
+                        </div>
+                        <div className="pa-prop-badge">{p.subCategory || p.category}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="pa-msg-row assistant">
+              <div className="pa-bot-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <div className="pa-bubble assistant loading-bubble">
+                <span className="pa-dot"></span><span className="pa-dot"></span><span className="pa-dot"></span>
+              </div>
+            </div>
+          )}
+
+          {messages.length === 1 && !loading && (
+            <div className="pa-quick-grid">
+              {QUICK.map((a, i) => (
+                <button key={i} className="pa-quick-card" onClick={() => sendMessage(a.label)}>
+                  <span className="pa-quick-card-icon">{a.icon}</span>
+                  <span>{a.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        <div className="pa-input-area">
+          <div className="pa-input-wrap">
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
+              placeholder="Ask about properties, prices, locations..."
+              className="pa-input"
+              disabled={loading}
+            />
+            <button className={"pa-send-btn" + (input.trim() && !loading ? " ready" : "")} onClick={() => sendMessage()} disabled={!input.trim() || loading}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+          <p className="pa-footer-note">ProperAgent searches live listings · Powered by AI · ProperEstate Nepal</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ===== BUYERS SECTION PAGE ===== */
+const BuyersSectionPage = ({ user, chatRef }) => {
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [commentInputs, setCommentInputs] = useState({});
+  const [expandedComments, setExpandedComments] = useState({});
+  const [formData, setFormData] = useState({
+    title: "", description: "", propertyType: "", subCategory: "",
+    location: "", budget: "", contactPhone: "", contactEmail: ""
+  });
+
+  const BS_CATEGORIES = {
+    "Land":  { icon: "🌿", subs: ["Agricultural Land", "Residential Land", "Commercial Land"] },
+    "House": { icon: "🏠", subs: ["Apartment / Flat", "House / Villa", "Bungalow"] },
+    "Room":  { icon: "🚪", subs: ["Room - Living", "Room - Office", "Room - Storage"] },
+    "Commercial": { icon: "🏢", subs: ["Shop / Showroom", "Office Space", "Warehouse"] },
+  };
+
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${PA_API}/buyer-posts`);
+      const data = await res.json();
+      if (data.success) setPosts(data.posts);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchPosts(); }, []);
+
+  const handlePost = async (e) => {
+    e.preventDefault();
+    if (!user) { navigate("/login"); return; }
+    if (!formData.title || !formData.propertyType || !formData.location) { alert("Please fill required fields."); return; }
+    try {
+      const res = await fetch(`${PA_API}/buyer-posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, userId: user._id, userName: user.name, userAvatar: user.avatar })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShowForm(false);
+        setFormData({ title: "", description: "", propertyType: "", subCategory: "", location: "", budget: "", contactPhone: "", contactEmail: "" });
+        fetchPosts();
+      }
+    } catch {}
+  };
+
+  const handleComment = async (postId) => {
+    if (!user) { navigate("/login"); return; }
+    const text = (commentInputs[postId] || "").trim();
+    if (!text) return;
+    try {
+      await fetch(`${PA_API}/buyer-posts/${postId}/comment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id, userName: user.name, userAvatar: user.avatar, text })
+      });
+      setCommentInputs(prev => ({ ...prev, [postId]: "" }));
+      fetchPosts();
+    } catch {}
+  };
+
+  const timeAgo = (date) => {
+    const s = Math.floor((Date.now() - new Date(date)) / 1000);
+    if (s < 60) return "just now";
+    if (s < 3600) return Math.floor(s/60) + "m ago";
+    if (s < 86400) return Math.floor(s/3600) + "h ago";
+    return Math.floor(s/86400) + "d ago";
+  };
+
+  const subCats = formData.propertyType ? BS_CATEGORIES[formData.propertyType]?.subs || [] : [];
+
+  return (
+    <div className="bs-page">
+      {/* Hero */}
+      <div className="bs-hero">
+        <div className="bs-hero-inner">
+          <h1>📢 Buyers Section</h1>
+          <p>Post what you're looking for. Sellers and agents will reach out directly.</p>
+          {user ? (
+            <button className="bs-post-btn" onClick={() => setShowForm(v => !v)}>
+              {showForm ? "✕ Cancel" : "+ Post What You Need"}
+            </button>
+          ) : (
+            <button className="bs-post-btn" onClick={() => navigate("/login")}>Login to Post</button>
+          )}
+        </div>
+      </div>
+
+      <div className="bs-body">
+        {/* Post Form */}
+        {showForm && (
+          <div className="bs-form-card">
+            <h3>What are you looking for?</h3>
+            <form onSubmit={handlePost} className="bs-form">
+              <div className="bs-form-grid">
+                <div className="bs-field full">
+                  <label>Post Title *</label>
+                  <input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="e.g. Looking for 2BHK flat in Kathmandu" required />
+                </div>
+                <div className="bs-field full">
+                  <label>Property Type *</label>
+                  <div className="category-selector">
+                    {Object.entries(BS_CATEGORIES).map(([cat, info]) => (
+                      <button key={cat} type="button"
+                        className={"cat-btn" + (formData.propertyType === cat ? " selected" : "")}
+                        onClick={() => setFormData({...formData, propertyType: cat, subCategory: ""})}>
+                        {info.icon} {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {formData.propertyType && (
+                  <div className="bs-field full">
+                    <label>Sub-Category</label>
+                    <div className="subcategory-selector">
+                      {subCats.map(sc => (
+                        <button key={sc} type="button"
+                          className={"subcat-btn" + (formData.subCategory === sc ? " selected" : "")}
+                          onClick={() => setFormData({...formData, subCategory: sc})}>
+                          {sc}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="bs-field">
+                  <label>Location *</label>
+                  <input value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="e.g. Lalitpur, Kathmandu" required />
+                </div>
+                <div className="bs-field">
+                  <label>Budget (Rs./mo)</label>
+                  <input type="number" value={formData.budget} onChange={e => setFormData({...formData, budget: e.target.value})} placeholder="e.g. 15000" />
+                </div>
+                <div className="bs-field">
+                  <label>Contact Phone</label>
+                  <input value={formData.contactPhone} onChange={e => setFormData({...formData, contactPhone: e.target.value.replace(/\D/g,"").slice(0,10)})} placeholder="98XXXXXXXX" maxLength={10} />
+                </div>
+                <div className="bs-field">
+                  <label>Contact Email</label>
+                  <input type="email" value={formData.contactEmail} onChange={e => setFormData({...formData, contactEmail: e.target.value})} placeholder="your@email.com" />
+                </div>
+                <div className="bs-field full">
+                  <label>Description</label>
+                  <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={3} placeholder="Any specific requirements, preferences, timeline..." style={{width:"100%",resize:"vertical"}} />
+                </div>
+              </div>
+              <button type="submit" className="btn-primary full-width" style={{marginTop:16}}>📢 Post Request</button>
+            </form>
+          </div>
+        )}
+
+        {/* Feed */}
+        {loading ? (
+          <div className="rp-loading"><div className="rp-spinner"></div><p>Loading posts...</p></div>
+        ) : posts.length === 0 ? (
+          <div className="rp-empty">
+            <div style={{fontSize:52}}>📢</div>
+            <h3>No posts yet</h3>
+            <p>Be the first to post what you're looking for!</p>
+          </div>
+        ) : (
+          <div className="bs-feed">
+            {posts.map(post => {
+              const posterUser = post.userId && typeof post.userId === "object" ? post.userId : null;
+              const initials = (post.userName || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+              const isOwn = posterUser?._id && user?._id && posterUser._id.toString() === user._id.toString();
+              const showAllComments = expandedComments[post._id];
+              const visibleComments = showAllComments ? post.comments : (post.comments || []).slice(-2);
+              return (
+                <div key={post._id} className="bs-post-card">
+                  {/* Post header */}
+                  <div className="bs-post-header">
+                    <div className="bs-post-avatar">{initials}</div>
+                    <div className="bs-post-meta">
+                      <span className="bs-post-author">{post.userName}</span>
+                      <span className="bs-post-time">{timeAgo(post.createdAt)}</span>
+                    </div>
+                    <div className="bs-post-type-badge">
+                      {BS_CATEGORIES[post.propertyType]?.icon} {post.subCategory || post.propertyType}
+                    </div>
+                  </div>
+
+                  {/* Post body */}
+                  <h3 className="bs-post-title">{post.title}</h3>
+                  {post.description && <p className="bs-post-desc">{post.description}</p>}
+
+                  <div className="bs-post-tags">
+                    {post.location && <span className="bs-tag">📍 {post.location}</span>}
+                    {post.budget && <span className="bs-tag">💰 Rs. {parseInt(post.budget).toLocaleString()}/mo</span>}
+                  </div>
+
+                  {/* Contact row */}
+                  <div className="bs-post-contact">
+                    {post.contactPhone && (
+                      <a href={`tel:${post.contactPhone}`} className="bs-contact-btn phone">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        {post.contactPhone}
+                      </a>
+                    )}
+                    {post.contactEmail && (
+                      <a href={`mailto:${post.contactEmail}`} className="bs-contact-btn email">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                        Email
+                      </a>
+                    )}
+                    {user && posterUser && !isOwn && chatRef && (
+                      <button className="bs-contact-btn msg" onClick={() => chatRef.current?.openWith(posterUser)}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        Message
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Comments */}
+                  <div className="bs-comments">
+                    <div className="bs-comments-header">
+                      <span className="bs-comments-count">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        {post.comments?.length || 0} {post.comments?.length === 1 ? "comment" : "comments"}
+                      </span>
+                      {post.comments?.length > 2 && (
+                        <button className="bs-show-more" onClick={() => setExpandedComments(prev => ({...prev, [post._id]: !prev[post._id]}))}>
+                          {showAllComments ? "Show less" : `View all ${post.comments.length} comments`}
+                        </button>
+                      )}
+                    </div>
+                    {visibleComments.map((c, ci) => {
+                      const cInitials = (c.userName || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+                      return (
+                        <div key={ci} className="bs-comment">
+                          <div className="bs-comment-avatar">{cInitials}</div>
+                          <div className="bs-comment-body">
+                            <span className="bs-comment-author">{c.userName}</span>
+                            <span className="bs-comment-text">{c.text}</span>
+                            <span className="bs-comment-time">{timeAgo(c.createdAt)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {user && (
+                      <div className="bs-comment-input-row">
+                        <div className="bs-comment-avatar">{(user.name || "?").split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase()}</div>
+                        <div className="bs-comment-input-wrap">
+                          <input
+                            value={commentInputs[post._id] || ""}
+                            onChange={e => setCommentInputs(prev => ({...prev, [post._id]: e.target.value}))}
+                            onKeyDown={e => e.key === "Enter" && handleComment(post._id)}
+                            placeholder="Write a comment... (e.g. I found it! Contact me)"
+                            className="bs-comment-input"
+                          />
+                          <button className="bs-comment-send" onClick={() => handleComment(post._id)} disabled={!(commentInputs[post._id] || "").trim()}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ===== RENTAL PARTNER PAGE ===== */
 const PARTNER_CATEGORIES = {
   "Land":  { icon: "🌿", subs: ["Agricultural Land", "Residential Land", "Commercial Land"] },
@@ -1827,6 +2368,7 @@ function App() {
   const [bookingCount, setBookingCount] = useState(0);
   const [toast, setToast] = useState(null);
   const chatRef = useRef(null);
+  const [chatUnread, setChatUnread] = useState(0);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -1920,8 +2462,7 @@ function App() {
     <div className="app-root">
       {showAddPayment && (<DummyEsewaPayment amount={1000} description={"ProperEstate Platform Commission (Listing Fee)"} onSuccess={completeAddLand} onCancel={() => setShowAddPayment(false)} />)}
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-      <SmartSuggestor />
-      {user && <ChatApp user={user} initialOther={chatTarget} openRef={chatRef} />}
+      {user && <ChatApp user={user} initialOther={chatTarget} openRef={chatRef} onUnreadChange={setChatUnread} />}
 
       <div className={"sidebar-overlay " + (sidebarOpen ? "open" : "")} onClick={() => setSidebarOpen(false)}></div>
       <div className={"sidebar " + (sidebarOpen ? "open" : "")}>
@@ -1931,6 +2472,8 @@ function App() {
         <div className="sidebar-link" onClick={() => { navigate("/profile"); setSidebarOpen(false); }}>👤 My Profile</div>
         <div className="sidebar-link" onClick={() => { navigate("/add-land"); setSidebarOpen(false); }}>＋ List Property</div>
         <div className="sidebar-link" onClick={() => { navigate("/rental-partner"); setSidebarOpen(false); }}>🤝 Rental Partner</div>
+        <div className="sidebar-link" onClick={() => { navigate("/proper-agent"); setSidebarOpen(false); }}>🤖 ProperAgent AI</div>
+        <div className="sidebar-link" onClick={() => { navigate("/buyers-section"); setSidebarOpen(false); }}>📢 Buyers Section</div>
         <div className="sidebar-link" onClick={() => { navigate("/help"); setSidebarOpen(false); }}>❓ Help Center</div>
         {user && <div className="sidebar-link logout" onClick={handleLogout}>Logout</div>}
       </div>
@@ -1947,7 +2490,7 @@ function App() {
               <>
                 <button className="nav-chat-btn" onClick={() => chatRef.current?.toggle()} title="Messages">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                  {bookingCount > 0 && <span className="nav-requests-badge" style={{top:2,right:2}}>{bookingCount > 9 ? "9+" : bookingCount}</span>}
+                  {chatUnread > 0 && <span className="nav-requests-badge" style={{top:2,right:2,background:"#e53935"}}>{chatUnread > 9 ? "9+" : chatUnread}</span>}
                 </button>
                 <button className="nav-requests-btn" onClick={() => navigate("/dashboard/requests")} title="Rental Requests">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -2005,6 +2548,8 @@ function App() {
           <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} />} />
           <Route path="/help" element={<HelpCenter />} />
           <Route path="/rental-partner" element={user ? <RentalPartnerPage user={user} chatRef={chatRef} /> : <Navigate to="/login" />} />
+          <Route path="/proper-agent" element={<ProperAgentPage user={user} />} />
+          <Route path="/buyers-section" element={<BuyersSectionPage user={user} chatRef={chatRef} />} />
           <Route path="/dashboard/listed" element={
             <div className="container"><h2 className="page-title">My Listed Assets</h2>
               <div className="lands-grid">
@@ -2029,6 +2574,7 @@ function App() {
                     <p><strong>Property:</strong> {b.landId?.title}</p>
                     <p><strong>Renter:</strong> {b.buyerId?.name} | <strong>Email:</strong> {b.buyerId?.email}</p>
                     {b.rentDuration && <p><strong>Duration:</strong> {b.rentDuration}</p>}
+                    {b.negotiatedPrice && <p><strong>Buyer's Offer:</strong> <span style={{color:"#c5a059",fontWeight:700}}>Rs. {parseInt(b.negotiatedPrice).toLocaleString()}/mo</span> <span style={{color:"#888",fontSize:"0.85rem"}}>(listed: Rs. {b.landId?.price?.toLocaleString()}/mo)</span></p>}
                     <p><strong>Status:</strong> <span style={{ fontWeight: "bold", color: b.status === "pending" ? "orange" : b.status === "accepted" ? "green" : "red" }}>{b.status?.toUpperCase()}</span></p>
                     {b.status === "pending" && (
                       <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>

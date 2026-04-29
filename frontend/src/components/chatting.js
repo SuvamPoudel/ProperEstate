@@ -15,7 +15,7 @@ const Avatar = ({ name, avatar, size = 38 }) => {
   );
 };
 
-export default function ChatApp({ user, initialOther = null, openRef = null }) {
+export default function ChatApp({ user, initialOther = null, openRef = null, onUnreadChange = null }) {
   const [conversations, setConversations] = useState([]);
   const [activeOther, setActiveOther] = useState(initialOther);
   const [messages, setMessages] = useState([]);
@@ -44,7 +44,6 @@ export default function ChatApp({ user, initialOther = null, openRef = null }) {
           setView("list");
           fetchConversations();
         },
-        // Open directly into a specific conversation
         openWith: (otherUser) => {
           setActiveOther(otherUser);
           setView("chat");
@@ -52,9 +51,18 @@ export default function ChatApp({ user, initialOther = null, openRef = null }) {
           setOpen(true);
         },
         getUnread: () => unread,
+        onUnreadChange: null, // parent can set this to a callback
       };
     }
   });
+
+  // Notify parent whenever unread count changes
+  useEffect(() => {
+    if (openRef?.current?.onUnreadChange) {
+      openRef.current.onUnreadChange(unread);
+    }
+    if (onUnreadChange) onUnreadChange(unread);
+  }, [unread, openRef, onUnreadChange]);
 
   const fetchConversations = useCallback(async () => {
     if (!user?._id) return;

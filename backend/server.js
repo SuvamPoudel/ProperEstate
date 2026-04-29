@@ -99,10 +99,11 @@ const bookingSchema = new mongoose.Schema({
   landId: { type: mongoose.Schema.Types.ObjectId, ref: "Land" },
   buyerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   sellerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  status: { type: String, default: "pending" }, // pending, accepted, rejected, refunded
+  status: { type: String, default: "pending" },
   paymentAmount: Number,
-  rentDuration: String, // e.g. "6 months", "1 year"
+  rentDuration: String,
   rentDurationMonths: Number,
+  negotiatedPrice: { type: Number, default: null },
   createdAt: { type: Date, default: Date.now },
 });
 const Booking = mongoose.model("Booking", bookingSchema);
@@ -513,29 +514,6 @@ NEPALI TERMS: kotha=room, ghar=house, khet=agri land, pasal=shop, bhada=rent, sa
 
 Keep replies under 200 words. Use emojis naturally. Always suggest next steps.`;
 
-app.post("/ai-advisor", async (req, res) => {
-  try {
-    const { messages } = req.body;
-    const lastMsg = (messages && messages.length) ? messages[messages.length - 1].content : "";
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey || apiKey === "your_api_key_here") {
-      return res.json({ success: true, reply: getFallbackReply(lastMsg) });
-    }
-    const openai = new OpenAI({ apiKey });
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages.slice(-10)],
-      max_tokens: 300,
-      temperature: 0.7,
-    });
-    res.json({ success: true, reply: completion.choices[0].message.content });
-  } catch (err) {
-    console.error("AI error:", err.message);
-    const lastMsg = (req.body.messages && req.body.messages.length) ? req.body.messages[req.body.messages.length - 1].content : "";
-    res.json({ success: true, reply: getFallbackReply(lastMsg) });
-  }
-});
-
 function getFallbackReply(text) {
   const t = (text || "").toLowerCase().trim();
   if (t.match(/^(hi|hello|hey|namaste|namaskar|yo|sup)/)) return "Namaste! I am RentBot, your Nepal rental expert.\n\nI can help with:\n- Rental prices in any Nepal city\n- Finding the right property type\n- How to use ProperEstate\n- Nepal rental laws and process\n\nWhat are you looking for?";
@@ -616,6 +594,97 @@ app.get("/rental-partners", async (req, res) => {
     res.json({ success: true, partners });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/* ===================================================== 📢 BUYERS SECTION ===================================================== */
+const buyerPostSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  userName: String,
+  userAvatar: String,
+  title: { type: String, required: true },
+  description: { type: String, default: "" },
+  propertyType: { type: String, required: true },
+  subCategory: { type: String, default: "" },
+  location: { type: String, required: true },
+  budget: { type: Number, default: null },
+  contactPhone: { type: String, default: "" },
+  contactEmail: { type: String, default: "" },
+  comments: [{
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    userName: String,
+    userAvatar: String,
+    text: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
+  createdAt: { type: Date, default: Date.now },
+});
+const BuyerPost = mongoose.model("BuyerPost", buyerPostSchema);
+
+app.post("/buyer-posts", async (req, res) => {
+  try {
+    const post = new BuyerPost(req.body);
+    await post.save();
+    res.json({ success: true, post });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get("/buyer-posts", async (req, res) => {
+  try {
+    const posts = await BuyerPost.find()
+      .populate("userId", "name avatar _id")
+      .sort({ createdAt: -1 });
+    res.json({ success: true, posts });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/buyer-posts/:id/comment", async (req, res) => {
+  try {
+    const post = await BuyerPost.findByIdAndUpdate(
+      req.params.id,
+      { $push: { comments: req.body } },
+      { new: true }
+    ).populate("userId", "name avatar _id");
+    res.json({ success: true, post });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/* ===================================================== 🤖 PROPER AGENT — enhanced AI with live DB context ===================================================== */
+// The /ai-advisor route already handles ProperAgent; liveProperties are injected into the system prompt
+// We update the route to accept and use liveProperties
+app.post("/ai-advisor", async (req, res) => {
+  try {
+    const { messages, liveProperties } = req.body;
+    const lastMsg = (messages && messages.length) ? messages[messages.length - 1].content : "";
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    let liveContext = "";
+    if (liveProperties && liveProperties.length > 0) {
+      liveContext = "\n\nLIVE DATABASE RESULTS (mention these specifically):\n" +
+        liveProperties.map(p => `- "${p.title}" in ${p.city || p.location}, ${p.district || ""} — Rs.${p.price}/mo (${p.subCategory || p.category})`).join("\n");
+    }
+
+    if (!apiKey || apiKey === "your_api_key_here") {
+      return res.json({ success: true, reply: getFallbackReply(lastMsg) });
+    }
+    const openai = new OpenAI({ apiKey });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "system", content: SYSTEM_PROMPT + liveContext }, ...messages.slice(-10)],
+      max_tokens: 400,
+      temperature: 0.7,
+    });
+    res.json({ success: true, reply: completion.choices[0].message.content });
+  } catch (err) {
+    console.error("AI error:", err.message);
+    const lastMsg = (req.body.messages && req.body.messages.length) ? req.body.messages[req.body.messages.length - 1].content : "";
+    res.json({ success: true, reply: getFallbackReply(lastMsg) });
   }
 });
 
