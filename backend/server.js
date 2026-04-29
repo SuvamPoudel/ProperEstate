@@ -1,4 +1,4 @@
-﻿const dns = require("node:dns");
+const dns = require("node:dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 require("dotenv").config();
@@ -16,23 +16,23 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-/* ===================================================== ðŸ”¥ MONGODB CONNECTION ===================================================== */
+/* ===================================================== 🔥 MONGODB CONNECTION ===================================================== */
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
-  console.error("âŒ MONGODB_URI not set in .env file");
+  console.error("❌ MONGODB_URI not set in .env file");
   process.exit(1);
 }
 async function connectDB() {
   try {
     await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 30000 });
-    console.log("âœ… MongoDB Atlas Connected Successfully!");
+    console.log("✅ MongoDB Atlas Connected Successfully!");
   } catch (err) {
-    console.error("âŒ MongoDB Connection Error:", err.message);
+    console.error("❌ MongoDB Connection Error:", err.message);
   }
 }
 connectDB();
 
-/* ===================================================== ðŸ“‚ MULTER STORAGE ===================================================== */
+/* ===================================================== 📂 MULTER STORAGE ===================================================== */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
@@ -42,7 +42,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-/* ===================================================== ðŸ‘¤ USER MODEL ===================================================== */
+/* ===================================================== 👤 USER MODEL ===================================================== */
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -59,7 +59,7 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model("User", userSchema);
 
-/* ===================================================== ðŸ¡ LAND MODEL ===================================================== */
+/* ===================================================== 🏡 LAND MODEL ===================================================== */
 const landSchema = new mongoose.Schema({
   title: String,
   location: String,
@@ -67,17 +67,16 @@ const landSchema = new mongoose.Schema({
   district: String,
   city: String,
   price: Number,
-  image: String,
+  image: String,           // kept for backward compat (first media item)
+  mediaFiles: [String],    // up to 6: images, videos, gifs
   lalpurjaImage: String,
   description: String,
-  category: String,        // main category: Land | House | Room | Commercial
-  subCategory: String,     // e.g. Agricultural Land, Apartment, Room - Living
+  category: String,
+  subCategory: String,
   mainCategory: String,
-  // Land-specific
   landUse: String,
   roadAccess: String,
   waterSource: String,
-  // House/Room-specific
   bedrooms: Number,
   bathrooms: Number,
   furnishing: String,
@@ -94,7 +93,7 @@ const landSchema = new mongoose.Schema({
 });
 const Land = mongoose.model("Land", landSchema);
 
-/* ===================================================== ðŸ“ BOOKING MODEL ===================================================== */
+/* ===================================================== 📝 BOOKING MODEL ===================================================== */
 const bookingSchema = new mongoose.Schema({
   landId: { type: mongoose.Schema.Types.ObjectId, ref: "Land" },
   buyerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -108,7 +107,7 @@ const bookingSchema = new mongoose.Schema({
 });
 const Booking = mongoose.model("Booking", bookingSchema);
 
-/* ===================================================== ðŸ” AUTH ROUTES ===================================================== */
+/* ===================================================== 🔐 AUTH ROUTES ===================================================== */
 app.post("/signup", async (req, res) => {
   try {
     const { email } = req.body;
@@ -163,19 +162,20 @@ app.post("/become-seller", upload.single("sellerDoc"), async (req, res) => {
   }
 });
 
-/* ===================================================== ðŸ¡ LAND ROUTES ===================================================== */
+/* ===================================================== 🏡 LAND ROUTES ===================================================== */
 // Handle multiple files: Main Image + Lalpurja
-app.post("/add-land", upload.fields([{ name: "image", maxCount: 1 }, { name: "lalpurja", maxCount: 1 }]), async (req, res) => {
+app.post("/add-land", upload.fields([{ name: "media", maxCount: 6 }, { name: "lalpurja", maxCount: 1 }]), async (req, res) => {
   try {
-    // Check seller status â€” existing users without accountType field are treated as sellers
+    // Check seller status — existing users without accountType field are treated as sellers
     const owner = await User.findById(req.body.ownerId);
     if (owner && owner.accountType && owner.accountType !== "seller" && owner.role !== "admin") {
       return res.status(403).json({ success: false, message: "Only verified seller accounts can list properties." });
     }
     const land = new Land({
       ...req.body,
-      image: req.files && req.files['image'] ? req.files['image'][0].filename : null,
-      lalpurjaImage: req.files && req.files['lalpurja'] ? req.files['lalpurja'][0].filename : null,
+      image: req.files?.media?.[0]?.filename || null,
+      mediaFiles: req.files?.media ? req.files.media.map(f => f.filename) : [],
+      lalpurjaImage: req.files?.lalpurja?.[0]?.filename || null,
       status: "pending"
     });
     await land.save();
@@ -233,7 +233,7 @@ app.put("/edit-land/:id", upload.single("image"), async (req, res) => {
   }
 });
 
-/* ===================================================== ðŸ‘‘ ADMIN ROUTES ===================================================== */
+/* ===================================================== 👑 ADMIN ROUTES ===================================================== */
 app.get("/admin/users", async (req, res) => {
   try {
     const users = await User.find({ role: { $ne: 'admin' } });
@@ -311,7 +311,7 @@ app.delete("/admin/delete-user/:id", async (req, res) => {
   }
 });
 
-/* ===================================================== ðŸ¤ BOOKING ROUTES ===================================================== */
+/* ===================================================== 🤝 BOOKING ROUTES ===================================================== */
 app.post("/book-land", async (req, res) => {
   try {
     const booking = new Booking(req.body);
@@ -353,7 +353,7 @@ app.post("/seller/respond-booking/:id", async (req, res) => {
   }
 });
 
-/* ===================================================== ðŸ” & â¤ï¸ SEARCH/SAVE ===================================================== */
+/* ===================================================== 🔍 & ❤️ SEARCH/SAVE ===================================================== */
 app.get("/search-live", async (req, res) => {
   try {
     const { q } = req.query;
@@ -401,17 +401,17 @@ app.get("/user-dashboard/:userId", async (req, res) => {
   }
 });
 
-/* ===================================================== ðŸ’¬ CHAT MODEL & ROUTES ===================================================== */
+/* ===================================================== 💬 CHAT MODEL & ROUTES ===================================================== */
 const messageSchema = new mongoose.Schema({
   roomId: { type: String, required: true, index: true },
   senderId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   text: String,
   readAt: { type: Date, default: null },
-  // deleteAt is set to readAt + 60s when message is read â€” TTL index fires on this field
+  // deleteAt is set to readAt + 60s when message is read — TTL index fires on this field
   deleteAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
 });
-// Simple TTL index on deleteAt â€” MongoDB deletes doc when deleteAt <= now
+// Simple TTL index on deleteAt — MongoDB deletes doc when deleteAt <= now
 messageSchema.index({ deleteAt: 1 }, { expireAfterSeconds: 0 });
 const Message = mongoose.model("Message", messageSchema);
 
@@ -432,7 +432,7 @@ app.post("/chat/send", async (req, res) => {
   }
 });
 
-// Get messages for a room (and mark unread ones as read â†’ starts 60s delete countdown)
+// Get messages for a room (and mark unread ones as read → starts 60s delete countdown)
 app.get("/chat/messages/:userId/:otherId", async (req, res) => {
   try {
     const { userId, otherId } = req.params;
@@ -489,9 +489,9 @@ app.get("/chat/unread/:userId", async (req, res) => {
   }
 });
 
-/* ===================================================== ðŸ¤– /* ===================================================== 🤖
+/* ===================================================== 🤖 /* ===================================================== ??
 
-/* ===================================================== 🤖 AI RENT ADVISOR ===================================================== */
+/* ===================================================== ?? AI RENT ADVISOR ===================================================== */
 const OpenAI = require("openai");
 
 const SYSTEM_PROMPT = `You are RentBot, an expert AI assistant for ProperEstate - Nepal's premier broker-free rental platform. Be friendly, concise, and helpful like ChatGPT.
@@ -557,7 +557,7 @@ app.post("/help-center", async (req, res) => {
   }
 });
 
-/* ===================================================== 🤝 RENTAL PARTNER ===================================================== */
+/* ===================================================== ?? RENTAL PARTNER ===================================================== */
 const rentalPartnerSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   name: { type: String, required: true },
@@ -597,7 +597,7 @@ app.get("/rental-partners", async (req, res) => {
   }
 });
 
-/* ===================================================== 📢 BUYERS SECTION ===================================================== */
+/* ===================================================== ?? BUYERS SECTION ===================================================== */
 const buyerPostSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   userName: String,
@@ -655,7 +655,7 @@ app.post("/buyer-posts/:id/comment", async (req, res) => {
   }
 });
 
-/* ===================================================== 🤖 PROPER AGENT — enhanced AI with live DB context ===================================================== */
+/* ===================================================== ?? PROPER AGENT � enhanced AI with live DB context ===================================================== */
 // The /ai-advisor route already handles ProperAgent; liveProperties are injected into the system prompt
 // We update the route to accept and use liveProperties
 app.post("/ai-advisor", async (req, res) => {
@@ -667,7 +667,7 @@ app.post("/ai-advisor", async (req, res) => {
     let liveContext = "";
     if (liveProperties && liveProperties.length > 0) {
       liveContext = "\n\nLIVE DATABASE RESULTS (mention these specifically):\n" +
-        liveProperties.map(p => `- "${p.title}" in ${p.city || p.location}, ${p.district || ""} — Rs.${p.price}/mo (${p.subCategory || p.category})`).join("\n");
+        liveProperties.map(p => `- "${p.title}" in ${p.city || p.location}, ${p.district || ""} � Rs.${p.price}/mo (${p.subCategory || p.category})`).join("\n");
     }
 
     if (!apiKey || apiKey === "your_api_key_here") {
@@ -689,5 +689,5 @@ app.post("/ai-advisor", async (req, res) => {
 });
 
 app.listen(5000, () => {
-  console.log("🚀 Server running on http://localhost:5000");
+  console.log("?? Server running on http://localhost:5000");
 });

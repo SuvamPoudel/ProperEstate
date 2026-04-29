@@ -777,6 +777,159 @@ const PROPERTY_CATEGORIES = {
   }
 };
 
+/* ===== MEDIA GALLERY (details page slider) ===== */
+const MediaGallery = ({ mediaFiles = [], title = "" }) => {
+  const [active, setActive] = useState(0);
+  const files = mediaFiles.length > 0 ? mediaFiles : [];
+  if (files.length === 0) return (
+    <div className="gallery-main-wrap">
+      <img src="https://via.placeholder.com/600x400?text=No+Image" alt={title} className="gallery-main-img" />
+    </div>
+  );
+  const src = `http://localhost:5000/uploads/${files[active]}`;
+  const isVid = /\.(mp4|webm|mov|avi)$/i.test(files[active]);
+  const isGif = /\.gif$/i.test(files[active]);
+  return (
+    <div className="gallery-wrap">
+      <div className="gallery-main-wrap">
+        {isVid ? (
+          <video key={src} src={src} className="gallery-main-img" controls autoPlay muted loop />
+        ) : (
+          <img key={src} src={src} alt={title} className="gallery-main-img" />
+        )}
+        {files.length > 1 && (
+          <>
+            <button className="gallery-arrow left" onClick={() => setActive(a => (a - 1 + files.length) % files.length)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button className="gallery-arrow right" onClick={() => setActive(a => (a + 1) % files.length)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div className="gallery-counter">{active + 1} / {files.length}</div>
+          </>
+        )}
+      </div>
+      {files.length > 1 && (
+        <div className="gallery-thumbs">
+          {files.map((f, i) => {
+            const tSrc = `http://localhost:5000/uploads/${f}`;
+            const tVid = /\.(mp4|webm|mov|avi)$/i.test(f);
+            return (
+              <div key={i} className={"gallery-thumb" + (i === active ? " active" : "")} onClick={() => setActive(i)}>
+                {tVid ? (
+                  <video src={tSrc} className="gallery-thumb-media" muted />
+                ) : (
+                  <img src={tSrc} alt="" className="gallery-thumb-media" />
+                )}
+                {tVid && <span className="gallery-thumb-play">▶</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ===== MEDIA UPLOADER (up to 6 images/videos/gifs) ===== */
+const MediaUploader = ({ initialMedia = [] }) => {
+  const [previews, setPreviews] = useState(
+    initialMedia.map(f => ({ name: f, url: `http://localhost:5000/uploads/${f}`, existing: true }))
+  );
+  const [newFiles, setNewFiles] = useState([]);
+  const inputRef = useRef();
+  const hiddenInputsRef = useRef([]);
+
+  const handleFiles = (files) => {
+    const remaining = 6 - previews.length;
+    if (remaining <= 0) return;
+    const selected = Array.from(files).slice(0, remaining);
+    const newPreviews = selected.map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      file,
+      existing: false,
+      type: file.type
+    }));
+    setPreviews(prev => [...prev, ...newPreviews]);
+    setNewFiles(prev => [...prev, ...selected]);
+  };
+
+  const removeFile = (idx) => {
+    const item = previews[idx];
+    if (!item.existing) {
+      URL.revokeObjectURL(item.url);
+      setNewFiles(prev => prev.filter(f => f.name !== item.name));
+    }
+    setPreviews(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const isVideo = (item) => item.type?.startsWith("video/") || /\.(mp4|webm|mov|avi|gif)$/i.test(item.name);
+
+  // Sync files to hidden inputs so FormData picks them up
+  useEffect(() => {
+    hiddenInputsRef.current.forEach((input, i) => {
+      if (input && newFiles[i]) {
+        const dt = new DataTransfer();
+        dt.items.add(newFiles[i]);
+        input.files = dt.files;
+      }
+    });
+  }, [newFiles]);
+
+  return (
+    <div className="media-uploader">
+      <div className="media-uploader-label">
+        <span>📸 Property Media</span>
+        <span className="media-count-badge">{previews.length}/6</span>
+      </div>
+      <p className="media-uploader-hint">Add up to 6 images, videos, or GIFs. First file = cover photo.</p>
+
+      {/* Hidden inputs — one per new file — named "media" so multer picks them up */}
+      {newFiles.map((f, i) => (
+        <input
+          key={i}
+          type="file"
+          name="media"
+          accept="image/*,video/*,.gif"
+          style={{ display: "none" }}
+          ref={el => hiddenInputsRef.current[i] = el}
+        />
+      ))}
+
+      {/* Picker input */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,video/*,.gif"
+        multiple
+        style={{ display: "none" }}
+        onChange={e => handleFiles(e.target.files)}
+      />
+
+      <div className="media-grid">
+        {previews.map((item, idx) => (
+          <div key={idx} className={"media-thumb" + (idx === 0 ? " cover" : "")}>
+            {isVideo(item) ? (
+              <video src={item.url} className="media-thumb-media" muted />
+            ) : (
+              <img src={item.url} alt={item.name} className="media-thumb-media" />
+            )}
+            {idx === 0 && <span className="media-cover-badge">Cover</span>}
+            <button type="button" className="media-remove-btn" onClick={() => removeFile(idx)}>✕</button>
+          </div>
+        ))}
+        {previews.length < 6 && (
+          <button type="button" className="media-add-btn" onClick={() => inputRef.current?.click()}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Add Media</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ===== LAND FORM ===== */
 const LandForm = ({ initialData = {}, onSubmit, submitLabel = "Submit Listing" }) => {
   const [province, setProvince] = useState(initialData.province || "");
@@ -910,18 +1063,18 @@ const LandForm = ({ initialData = {}, onSubmit, submitLabel = "Submit Listing" }
         </div>
       </div>
       <textarea name="description" placeholder="Detailed Description..." rows="4" style={{ width: "100%", marginTop: "10px" }} defaultValue={initialData.description || ""}></textarea>
-      <div style={{ display: "flex", gap: "20px", marginTop: "10px" }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ display: "block" }}>Property Image {initialData.image ? "(leave blank to keep current)" : "(Public)"}</label>
-          <input type="file" name="image" accept="image/*" {...(!initialData.image ? { required: true } : {})} />
+
+      {/* Multi-media upload */}
+      <MediaUploader initialMedia={initialData.mediaFiles || (initialData.image ? [initialData.image] : [])} />
+
+      {!initialData._id && (
+        <div style={{ marginTop: "14px" }}>
+          <label style={{ display: "block", color: "#dc2626", fontWeight: "bold", marginBottom: 6 }}>
+            📄 Lalpurja / Ownership Document (Admin Only) *
+          </label>
+          <input type="file" name="lalpurja" accept="image/*,.pdf" required />
         </div>
-        {!initialData._id && (
-          <div style={{ flex: 1 }}>
-            <label style={{ display: "block", color: "red", fontWeight: "bold" }}>Lalpurja / Ownership Document (Admin Only)</label>
-            <input type="file" name="lalpurja" required />
-          </div>
-        )}
-      </div>
+      )}
       <button className="btn-primary full-width" style={{ marginTop: "20px" }} type="submit" disabled={mainCategory && !subCategory}>{submitLabel}</button>
     </form>
   );
@@ -981,9 +1134,8 @@ const LandDetailsPage = ({ user, toggleSave, onChatWith }) => {
       <button className="back-btn" onClick={() => navigate(-1)}>&#8592; Back</button>
       <div className="details-grid">
         <div className="details-left">
-          <div className="image-container-fixed">
-            <img className="main-img" src={land.image ? "http://localhost:5000/uploads/" + land.image : "https://via.placeholder.com/600"} alt={land.title} />
-          </div>
+          {/* Media Gallery */}
+          <MediaGallery mediaFiles={land.mediaFiles?.length > 0 ? land.mediaFiles : (land.image ? [land.image] : [])} title={land.title} />
           <div className="details-desc"><h2>About Property</h2><p>{land.description || "No description provided."}</p></div>
           {land.mapUrl && (
             <div className="details-map-section">
